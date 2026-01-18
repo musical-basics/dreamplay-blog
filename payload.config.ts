@@ -2,11 +2,11 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
-import { startTransition } from 'react'
 // @ts-ignore
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 import path from 'path'
+import { Comments } from './collections/Comments'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -39,7 +39,10 @@ export default buildConfig({
                         beforeValidate: [
                             ({ value, data }) => {
                                 if (!value && data?.title) {
-                                    return data.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+                                    return data.title
+                                        .toLowerCase()
+                                        .replace(/ /g, '-')
+                                        .replace(/[^\w-]+/g, '')
                                 }
                                 return value
                             },
@@ -84,6 +87,7 @@ export default buildConfig({
                 },
             ],
         },
+        Comments,
     ],
     editor: lexicalEditor({}),
     secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',
@@ -108,7 +112,9 @@ export default buildConfig({
                     secretAccessKey: process.env.PAYLOAD_SUPABASE_SECRET || '',
                 },
                 region: 'us-east-1',
-                endpoint: process.env.PAYLOAD_SUPABASE_URL ? `${process.env.PAYLOAD_SUPABASE_URL}/storage/v1/s3` : '',
+                endpoint: process.env.PAYLOAD_SUPABASE_URL
+                    ? `${process.env.PAYLOAD_SUPABASE_URL}/storage/v1/s3`
+                    : '',
                 forcePathStyle: true,
             },
         }),

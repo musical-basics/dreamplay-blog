@@ -11,7 +11,6 @@ import {
   Link2,
 } from "lucide-react";
 import {
-  dummyComments,
   formatDate,
   getCategoryLabel,
 } from "@/lib/blog-data";
@@ -48,6 +47,27 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
 
   const post = result.docs[0]
+
+  const commentsResult = await payload.find({
+    collection: 'comments',
+    where: {
+      and: [
+        {
+          post: {
+            equals: post.id,
+          },
+        },
+        {
+          status: {
+            equals: 'approved',
+          },
+        },
+      ],
+    },
+    sort: '-createdAt',
+  })
+
+  const comments = commentsResult.docs
 
   const heroImageUrl =
     post.heroImage && typeof post.heroImage !== 'string'
@@ -233,8 +253,18 @@ export default async function BlogPostPage({ params }: PageProps) {
               dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
 
+
             {/* Comments Section */}
-            <CommentsSection comments={dummyComments} />
+            <CommentsSection
+              // @ts-ignore
+              comments={comments.map(c => ({
+                id: c.id,
+                name: c.name,
+                comment: c.comment,
+                createdAt: c.createdAt,
+              }))}
+              postId={post.id}
+            />
           </div>
         </article>
       </main>
