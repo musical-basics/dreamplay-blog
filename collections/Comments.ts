@@ -39,14 +39,10 @@ export const Comments: CollectionConfig = {
             admin: {
                 position: 'sidebar',
             },
-            hooks: {
-                // Prevent email from being returned in API responses to public
-                afterRead: [
-                    ({ req: { user }, value }) => {
-                        if (user) return value
-                        return undefined
-                    },
-                ],
+            access: {
+                read: ({ req: { user } }) => {
+                    return Boolean(user)
+                },
             },
         },
         {
