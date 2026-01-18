@@ -1,0 +1,258 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  Music,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Link2,
+} from "lucide-react";
+import {
+  dummyComments,
+  formatDate,
+  getCategoryLabel,
+} from "@/lib/blog-data";
+import { CommentsSection } from "@/components/blog/comments-section";
+import { getPayload } from 'payload'
+import configPromise from '@/payload.config'
+import { Media } from '@/payload-types'
+import { serializeLexical } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
+
+interface PageProps {
+  params: Promise<{
+    slug: string;
+  }>;
+}
+
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+
+  const payload = await getPayload({ config: configPromise })
+  const result = await payload.find({
+    collection: 'posts',
+    where: {
+      slug: {
+        equals: slug,
+      },
+    },
+    limit: 1,
+  })
+
+  if (!result.docs.length) {
+    notFound();
+  }
+
+  const post = result.docs[0]
+
+  const heroImageUrl =
+    post.heroImage && typeof post.heroImage !== 'string'
+      ? (post.heroImage as Media).url
+      : "/placeholder.svg"
+
+  const contentHtml = serializeLexical(post.content)
+
+  // Default values for missing fields
+  const displayCategory = "tutorials"
+  const displayAuthor = "Admin"
+  const readTime = "5 min read"
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="flex items-center gap-2 transition-opacity hover:opacity-80"
+          >
+            <Music className="h-6 w-6 text-accent" />
+            <span className="font-serif text-xl font-semibold text-foreground">
+              DreamPlay
+            </span>
+          </Link>
+          <nav className="hidden items-center gap-8 sm:flex">
+            <Link
+              href="/"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Home
+            </Link>
+            <Link href="/blog" className="text-sm font-medium text-foreground">
+              Blog
+            </Link>
+            <Link
+              href="/"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Pianos
+            </Link>
+            <Link
+              href="/"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Contact
+            </Link>
+          </nav>
+          <button
+            type="button"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+          >
+            Book a Demo
+          </button>
+        </div>
+      </header>
+
+      <main className="pt-16">
+        {/* Hero Image */}
+        <section className="relative h-[50vh] min-h-[400px] lg:h-[60vh]">
+          <img
+            src={heroImageUrl || "/placeholder.svg"}
+            alt={post.title}
+            className="h-full w-full object-cover"
+          />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        </section>
+
+        {/* Article Content */}
+        <article className="relative -mt-32 px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl">
+            {/* Back Link */}
+            <Link
+              href="/blog"
+              className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Blog
+            </Link>
+
+            {/* Article Header */}
+            <header className="mb-10">
+              {/* Category Badge */}
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-foreground">
+                  {getCategoryLabel(displayCategory)}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h1 className="mb-6 font-serif text-3xl font-bold leading-tight text-foreground md:text-4xl lg:text-5xl">
+                {post.title}
+              </h1>
+
+              {/* Meta Info */}
+              <div className="flex flex-wrap items-center gap-6">
+                {/* Author */}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">
+                    {displayAuthor
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </div>
+                  <span className="font-medium text-foreground">
+                    {displayAuthor}
+                  </span>
+                </div>
+
+                <span className="hidden h-4 w-px bg-border sm:block" />
+
+                {/* Date */}
+                <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  {formatDate(post.createdAt)}
+                </span>
+
+                <span className="hidden h-4 w-px bg-border sm:block" />
+
+                {/* Read Time */}
+                <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  {readTime}
+                </span>
+              </div>
+
+              {/* Share Buttons */}
+              <div className="mt-6 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Share:</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Share on Twitter"
+                  >
+                    <Twitter className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Share on Facebook"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Share on LinkedIn"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Copy link"
+                  >
+                    <Link2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            {/* Article Body - Using Tailwind Typography */}
+            <div
+              className="prose prose-lg prose-invert prose-dreamplay max-w-none
+                prose-headings:font-serif prose-headings:font-bold
+                prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-2xl md:prose-h2:text-3xl
+                prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl
+                prose-p:leading-relaxed prose-p:text-muted-foreground
+                prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-foreground
+                prose-blockquote:relative prose-blockquote:border-l-4 prose-blockquote:border-accent 
+                prose-blockquote:bg-card prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg
+                prose-blockquote:not-italic prose-blockquote:text-lg prose-blockquote:font-serif
+                prose-blockquote:text-foreground/90
+                [&_blockquote_cite]:block [&_blockquote_cite]:mt-3 [&_blockquote_cite]:text-sm 
+                [&_blockquote_cite]:font-sans [&_blockquote_cite]:text-muted-foreground [&_blockquote_cite]:not-italic
+                prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm
+                prose-pre:bg-card prose-pre:border prose-pre:border-border"
+              dangerouslySetInnerHTML={{ __html: contentHtml }}
+            />
+
+            {/* Comments Section */}
+            <CommentsSection comments={dummyComments} />
+          </div>
+        </article>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <Music className="h-5 w-5 text-accent" />
+            <span className="font-serif text-lg text-foreground">
+              DreamPlay Pianos
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            © 2026 DreamPlay Pianos. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
