@@ -46,6 +46,20 @@ function serializeNode(node: any): string {
       return `<blockquote>${children}</blockquote>`
     case 'link':
       return `<a href="${node.fields.url}" target="${node.fields.newTab ? '_blank' : '_self'}" rel="${node.fields.newTab ? 'noopener noreferrer' : ''}">${children}</a>`
+    case 'upload':
+      if (!node.value) return ''
+      // Value might be the ID string if not populated, but usually it's the object at depth 1
+      const src = node.value.url
+      const alt = node.value.alt || ''
+      // We simplified caption to be just text in the config earlier, but if it's not present it might be null
+      const caption = node.fields?.caption || ''
+
+      return `
+        <figure class="my-8">
+          <img src="${src}" alt="${alt}" class="rounded-lg border border-border bg-card transition-colors w-full" />
+          ${caption ? `<figcaption class="text-sm text-center text-muted-foreground mt-2">${caption}</figcaption>` : ''}
+        </figure>
+      `
     default:
       return children
   }
