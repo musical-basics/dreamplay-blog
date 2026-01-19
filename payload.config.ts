@@ -1,6 +1,6 @@
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { lexicalEditor, UploadFeature } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 // @ts-ignore
 import sharp from 'sharp'
@@ -61,7 +61,24 @@ export default buildConfig({
                 {
                     name: 'content',
                     type: 'richText',
-                    editor: lexicalEditor({}),
+                    editor: lexicalEditor({
+                        features: ({ defaultFeatures }) => [
+                            ...defaultFeatures,
+                            UploadFeature({
+                                collections: {
+                                    media: {
+                                        fields: [
+                                            {
+                                                name: 'caption',
+                                                type: 'richText',
+                                                editor: lexicalEditor(),
+                                            },
+                                        ],
+                                    },
+                                },
+                            }),
+                        ],
+                    }),
                 },
             ],
         },
