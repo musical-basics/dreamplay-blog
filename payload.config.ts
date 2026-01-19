@@ -64,19 +64,7 @@ export default buildConfig({
                     editor: lexicalEditor({
                         features: ({ defaultFeatures }) => [
                             ...defaultFeatures,
-                            UploadFeature({
-                                collections: {
-                                    media: {
-                                        fields: [
-                                            {
-                                                name: 'caption',
-                                                type: 'richText',
-                                                editor: lexicalEditor(),
-                                            },
-                                        ],
-                                    },
-                                },
-                            }),
+                            UploadFeature(),
                         ],
                     }),
                 },

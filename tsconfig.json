@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@payload-types": [
+        "./payload-types.ts"
       ]
     }
   },
