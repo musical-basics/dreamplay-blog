@@ -70,7 +70,7 @@ export const Comments: CollectionConfig = {
                     value: 'approved',
                 },
             ],
-            defaultValue: 'pending',
+            defaultValue: 'approved',
             required: true,
             admin: {
                 position: 'sidebar',

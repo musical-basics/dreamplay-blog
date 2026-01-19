@@ -40,7 +40,7 @@ export async function submitComment(prevState: any, formData: FormData) {
                 email: validated.data.email,
                 comment: validated.data.comment,
                 post: validated.data.postId,
-                status: 'pending',
+                status: 'approved',
             },
         })
 
@@ -56,7 +56,7 @@ export async function submitComment(prevState: any, formData: FormData) {
 
         return {
             success: true,
-            message: 'Thank you! Your comment is awaiting moderation.',
+            message: 'Thank you! Your comment has been posted.',
         }
     } catch (error) {
         console.error('Error creating comment:', error)
