@@ -97,8 +97,7 @@ export default function BlogClientPage({ posts }: BlogClientPageProps) {
                 The DreamPlay Journal
               </h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-                Explore tutorials, artist stories, and the latest news from the
-                world of luxury pianos.
+                Read the latest news and updates from the world of narrow & ergonomic keyboards.
               </p>
             </div>
 
