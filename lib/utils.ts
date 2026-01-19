@@ -49,7 +49,7 @@ function serializeNode(node: any): string {
     case 'upload':
       if (!node.value) return ''
       // Value might be the ID string if not populated, but usually it's the object at depth 1
-      const src = node.value.url
+      const src = node.value?.sizes?.content?.url || node.value.url
       const alt = node.value.alt || ''
       // We simplified caption to be just text in the config earlier, but if it's not present it might be null
       const caption = node.fields?.caption || ''

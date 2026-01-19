@@ -7,9 +7,12 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 import path from 'path'
 import { Comments } from './collections/Comments'
+import { Videos } from './collections/Videos'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+
 
 export default buildConfig({
     admin: {
@@ -78,6 +81,16 @@ export default buildConfig({
                     relationTo: 'media',
                 },
                 {
+                    name: 'heroVideo',
+                    type: 'upload',
+                    relationTo: 'videos',
+                    required: false,
+                    admin: {
+                        position: 'sidebar',
+                        description: 'Upload a looping video (MP4). Replaces the Hero Image if present.',
+                    },
+                },
+                {
                     name: 'excerpt',
                     type: 'textarea',
                 },
@@ -104,6 +117,11 @@ export default buildConfig({
                         height: 300,
                         position: 'centre',
                     },
+                    {
+                        name: 'content',
+                        width: 1200,
+                        // without height, this will resize maintaining aspect ratio
+                    },
                 ],
                 adminThumbnail: 'thumbnail',
                 mimeTypes: ['image/*'],
@@ -116,6 +134,7 @@ export default buildConfig({
             ],
         },
         Comments,
+        Videos,
     ],
     editor: lexicalEditor({}),
     secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',
@@ -131,18 +150,25 @@ export default buildConfig({
     plugins: [
         s3Storage({
             collections: {
-                media: true,
+                media: {
+                    generateFileURL: (file) => {
+                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${file.filename}`
+                    },
+                },
+                videos: {
+                    generateFileURL: (file) => {
+                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${file.filename}`
+                    },
+                },
             },
-            bucket: process.env.PAYLOAD_PUBLIC_BUCKET || 'blog-media',
+            bucket: process.env.R2_BUCKET || '',
             config: {
                 credentials: {
-                    accessKeyId: process.env.PAYLOAD_S3_ACCESS_KEY_ID || '',
-                    secretAccessKey: process.env.PAYLOAD_SUPABASE_SECRET || '',
+                    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+                    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
                 },
-                region: 'us-east-1',
-                endpoint: process.env.PAYLOAD_SUPABASE_URL
-                    ? `${process.env.PAYLOAD_SUPABASE_URL}/storage/v1/s3`
-                    : '',
+                endpoint: process.env.R2_ENDPOINT,
+                region: 'auto',
                 forcePathStyle: true,
             },
         }),
