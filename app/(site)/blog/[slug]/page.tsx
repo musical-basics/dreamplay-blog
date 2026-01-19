@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { draftMode } from 'next/headers'
 import { notFound } from "next/navigation";
 import {
   Music,
@@ -30,10 +31,12 @@ interface PageProps {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
+  const { isEnabled: isDraftMode } = await draftMode()
 
   const payload = await getPayload({ config: configPromise })
   const result = await payload.find({
     collection: 'posts',
+    draft: isDraftMode,
     where: {
       slug: {
         equals: slug,

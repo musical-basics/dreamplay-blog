@@ -23,6 +23,18 @@ export default buildConfig({
         },
         {
             slug: 'posts',
+            admin: {
+                useAsTitle: 'title',
+                livePreview: {
+                    url: ({ data }) => {
+                        const secret = process.env.PAYLOAD_PUBLIC_DRAFT_SECRET
+                        return `${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/draft?secret=${secret}&slug=${data.slug}`
+                    },
+                },
+            },
+            versions: {
+                drafts: true,
+            },
             fields: [
                 {
                     name: 'title',
