@@ -28,7 +28,8 @@ export default buildConfig({
                 livePreview: {
                     url: ({ data }) => {
                         const secret = process.env.PAYLOAD_PUBLIC_DRAFT_SECRET
-                        return `${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/draft?secret=${secret}&slug=${data.slug}`
+                        const url = process.env.NEXT_PUBLIC_SERVER_URL || ''
+                        return `${url}/api/draft?secret=${secret}&slug=${data.slug}`
                     },
                 },
             },
