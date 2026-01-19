@@ -50,6 +50,16 @@ export default buildConfig({
                     },
                 },
                 {
+                    name: 'viewPost',
+                    type: 'ui',
+                    admin: {
+                        position: 'sidebar',
+                        components: {
+                            Field: '/components/payload/ViewPostButton#ViewPostButton',
+                        },
+                    },
+                },
+                {
                     name: 'heroImage',
                     type: 'upload',
                     relationTo: 'media',
