@@ -29,6 +29,7 @@ export default buildConfig({
             slug: 'posts',
             admin: {
                 useAsTitle: 'title',
+                defaultColumns: ['title', 'visibility', 'updatedAt'],
                 livePreview: {
                     url: ({ data }) => {
                         const secret = process.env.PAYLOAD_PUBLIC_DRAFT_SECRET
@@ -41,6 +42,17 @@ export default buildConfig({
                 drafts: true,
             },
             fields: [
+                {
+                    name: 'visibility',
+                    type: 'ui',
+                    admin: {
+                        position: 'sidebar',
+                        components: {
+                            Cell: '/components/payload/StatusCell#StatusCell',
+                            Field: '/components/payload/StatusCell#StatusCell',
+                        },
+                    },
+                },
                 {
                     name: 'title',
                     type: 'text',
