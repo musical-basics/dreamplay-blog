@@ -162,6 +162,7 @@ export default buildConfig({
             connectionString: process.env.PAYLOAD_DATABASE_URI || '',
         },
         idType: 'uuid',
+        push: true,
     }),
     plugins: [
         s3Storage({
