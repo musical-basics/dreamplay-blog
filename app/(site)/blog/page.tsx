@@ -11,6 +11,11 @@ export default async function BlogIndexPage() {
 
   const posts = await payload.find({
     collection: 'posts',
+    where: {
+      _status: {
+        equals: 'published',
+      },
+    },
     limit: 100,
   })
 
