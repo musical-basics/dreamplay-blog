@@ -265,6 +265,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 id: c.id,
                 name: c.name,
                 comment: c.comment,
+                likes: (c as any).likes || 0,
                 createdAt: c.createdAt,
               }))}
               postId={post.id}

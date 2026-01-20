@@ -22,6 +22,7 @@ export interface Comment {
   email: string;
   comment: string;
   createdAt: string;
+  likes?: number; // Optional until DB is fully migrated
 }
 
 // Dummy data for development - Replace with Payload CMS data

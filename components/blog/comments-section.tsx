@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Send, CheckCircle2 } from "lucide-react";
 import { type Comment, formatDate } from "@/lib/blog-data";
 import { submitComment } from "@/app/actions/submit-comment";
+import { CommentLikeButton } from "@/components/blog/comment-like-button";
 
 interface CommentsSectionProps {
   comments: Comment[];
@@ -196,6 +197,12 @@ export function CommentsSection({ comments: initialComments, postId }: CommentsS
                 <p className="leading-relaxed text-muted-foreground">
                   {comment.comment}
                 </p>
+                <div className="mt-3">
+                  <CommentLikeButton
+                    commentId={comment.id}
+                    initialLikes={comment.likes || 0}
+                  />
+                </div>
               </div>
             </article>
           ))

@@ -76,5 +76,14 @@ export const Comments: CollectionConfig = {
                 position: 'sidebar',
             },
         },
+        {
+            name: 'likes',
+            type: 'number',
+            defaultValue: 0,
+            admin: {
+                position: 'sidebar',
+                readOnly: true,
+            },
+        },
     ],
 }
