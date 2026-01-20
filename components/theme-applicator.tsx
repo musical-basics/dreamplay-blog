@@ -1,82 +1,85 @@
 'use client'
 
 import React from 'react'
-// import type { ThemeSetting } from '@/payload-types'
 
 interface ThemeSetting {
-    fontScale?: 'small' | 'medium' | 'large' | null
-    headerFontWeight?: 'light' | 'normal' | 'medium' | 'bold' | null
+  h1Size?: string | null
+  h1Weight?: string | null
+  h1Family?: string | null
+  h2Size?: string | null
+  h2Weight?: string | null
+  h2Family?: string | null
+  h3Size?: string | null
+  h3Weight?: string | null
+  h3Family?: string | null
+  bodySize?: string | null
+  bodyFamily?: string | null
 }
 
 interface ThemeApplicatorProps {
-    settings: ThemeSetting | null | any
+  settings: ThemeSetting | null | any
 }
 
 export const ThemeApplicator: React.FC<ThemeApplicatorProps> = ({ settings }) => {
-    if (!settings) return null
+  if (!settings) return null
 
-    const { fontScale, headerFontWeight } = settings
+  // Defaults fallback to CSS variables or hardcoded safe values if settings are missing
+  // (e.g. if the user hasn't saved the new settings yet)
 
-    // Define scales
-    // Medium is the "Normal" we just set (3xl for H2 ~30px)
-    const scales = {
-        small: {
-            '--h1-size': '2.5rem',  // ~40px
-            '--h2-size': '2rem',    // ~32px
-            '--h3-size': '1.75rem', // ~28px
-            '--p-size': '1rem',      // 16px
-        },
-        medium: {
-            '--h1-size': '3.25rem', // ~52px
-            '--h2-size': '2.5rem',  // ~40px
-            '--h3-size': '2rem',    // ~32px
-            '--p-size': '1.125rem', // 18px
-        },
-        large: {
-            '--h1-size': '4rem',    // ~64px
-            '--h2-size': '3rem',    // ~48px
-            '--h3-size': '2.5rem',  // ~40px
-            '--p-size': '1.25rem',  // 20px
-        },
-    }
+  const h1Size = settings.h1Size || '3.5rem'
+  const h1Weight = settings.h1Weight || '700'
+  const h1Family = settings.h1Family || 'var(--font-serif)'
 
-    const selectedScale = scales[(fontScale as keyof typeof scales) || 'medium']
+  const h2Size = settings.h2Size || '2.5rem'
+  const h2Weight = settings.h2Weight || '400'
+  const h2Family = settings.h2Family || 'var(--font-serif)'
 
-    const weightMap = {
-        light: 300,
-        normal: 400,
-        medium: 500,
-        bold: 700,
-    }
+  const h3Size = settings.h3Size || '2rem'
+  const h3Weight = settings.h3Weight || '400'
+  const h3Family = settings.h3Family || 'var(--font-serif)'
 
-    const selectedWeight = weightMap[(headerFontWeight as keyof typeof weightMap) || 'normal']
+  const bodySize = settings.bodySize || '1.125rem'
+  const bodyFamily = settings.bodyFamily || 'var(--font-sans)'
 
-    return (
-        <style jsx global>{`
+  return (
+    <style jsx global>{`
       :root {
-        --font-size-h1: ${selectedScale['--h1-size']};
-        --font-size-h2: ${selectedScale['--h2-size']};
-        --font-size-h3: ${selectedScale['--h3-size']};
-        --font-size-p: ${selectedScale['--p-size']};
-        --font-weight-header: ${selectedWeight};
+        --font-size-h1: ${h1Size};
+        --font-weight-h1: ${h1Weight};
+        --font-family-h1: ${h1Family};
+
+        --font-size-h2: ${h2Size};
+        --font-weight-h2: ${h2Weight};
+        --font-family-h2: ${h2Family};
+
+        --font-size-h3: ${h3Size};
+        --font-weight-h3: ${h3Weight};
+        --font-family-h3: ${h3Family};
+
+        --font-size-p: ${bodySize};
+        --font-family-p: ${bodyFamily};
       }
 
       /* Override Tailwind Prose Defaults */
       .prose h1 {
         font-size: var(--font-size-h1) !important;
-        font-weight: var(--font-weight-header) !important;
+        font-weight: var(--font-weight-h1) !important;
+        font-family: var(--font-family-h1) !important;
       }
       .prose h2 {
         font-size: var(--font-size-h2) !important;
-        font-weight: var(--font-weight-header) !important;
+        font-weight: var(--font-weight-h2) !important;
+        font-family: var(--font-family-h2) !important;
       }
       .prose h3 {
         font-size: var(--font-size-h3) !important;
-        font-weight: var(--font-weight-header) !important;
+        font-weight: var(--font-weight-h3) !important;
+        font-family: var(--font-family-h3) !important;
       }
-      .prose p {
+      .prose p, .prose li {
         font-size: var(--font-size-p) !important;
+        font-family: var(--font-family-p) !important;
       }
     `}</style>
-    )
+  )
 }
