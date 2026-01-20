@@ -240,8 +240,8 @@ export default async function BlogPostPage({ params }: PageProps) {
             <div
               className="prose prose-lg prose-invert prose-dreamplay max-w-none
                 prose-headings:font-serif prose-headings:font-normal
-                prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-2xl md:prose-h2:text-3xl
-                prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-xl
+                prose-h2:mt-12 prose-h2:mb-6 prose-h2:text-3xl md:prose-h2:text-4xl
+                prose-h3:mt-10 prose-h3:mb-4 prose-h3:text-2xl md:prose-h3:text-3xl
                 prose-p:leading-relaxed prose-p:text-muted-foreground prose-p:font-sans
                 prose-a:text-accent prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-foreground
