@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 import { Comments } from './collections/Comments'
 import { Videos } from './collections/Videos'
+import { ThemeSettings } from './globals/ThemeSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -135,6 +136,9 @@ export default buildConfig({
         },
         Comments,
         Videos,
+    ],
+    globals: [
+        ThemeSettings,
     ],
     editor: lexicalEditor({}),
     secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',

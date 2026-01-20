@@ -6,7 +6,7 @@ import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
-const _cormorant = Cormorant_Garamond({ 
+const _cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"]
 });
@@ -34,14 +34,27 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+import { getPayload } from 'payload'
+import configPromise from '@/payload.config'
+import { ThemeApplicator } from '@/components/theme-applicator'
+// import { ThemeSetting } from '@/payload-types'
+
+// ... existing imports
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const payload = await getPayload({ config: configPromise })
+  const themeSettings = await payload.findGlobal({
+    slug: 'theme-settings' as any,
+  }) as any
+
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
+        <ThemeApplicator settings={themeSettings} />
         {children}
         <Analytics />
       </body>
