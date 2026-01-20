@@ -240,16 +240,16 @@ export default async function BlogPostPage({ params }: PageProps) {
             {/* Article Body - Using Tailwind Typography */}
             <div
               className="prose prose-lg prose-invert prose-dreamplay max-w-none
-                prose-headings:font-serif prose-headings:font-normal
+                prose-headings:text-white prose-headings:font-serif prose-headings:font-normal
                 prose-h2:mt-12 prose-h2:mb-6 prose-h2:text-3xl md:prose-h2:text-4xl
                 prose-h3:mt-10 prose-h3:mb-4 prose-h3:text-2xl md:prose-h3:text-3xl
-                prose-p:leading-relaxed prose-p:text-muted-foreground prose-p:font-sans
+                prose-p:leading-relaxed prose-p:text-neutral-200 prose-p:font-normal prose-p:font-sans
                 prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-foreground
+                prose-strong:text-white prose-strong:font-semibold
                 prose-blockquote:border-l-4 prose-blockquote:border-accent 
                 prose-blockquote:pl-6 prose-blockquote:not-italic 
                 prose-blockquote:text-xl md:prose-blockquote:text-2xl prose-blockquote:font-serif
-                prose-blockquote:text-foreground
+                prose-blockquote:text-white
                 [&_blockquote_cite]:block [&_blockquote_cite]:mt-3 [&_blockquote_cite]:text-sm 
                 [&_blockquote_cite]:font-sans [&_blockquote_cite]:text-muted-foreground [&_blockquote_cite]:not-italic
                 prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm
