@@ -93,10 +93,11 @@ export default async function BlogPostPage({ params }: PageProps) {
             href="/"
             className="flex items-center gap-2 transition-opacity hover:opacity-80"
           >
-            <Music className="h-6 w-6 text-accent" />
-            <span className="font-serif text-xl font-semibold text-foreground">
-              DreamPlay
-            </span>
+            <img
+              src="/DP update_DP outline white 2.png"
+              alt="DreamPlay Pianos"
+              className="h-8 w-auto mb-1"
+            />
           </Link>
           <nav className="hidden items-center gap-8 sm:flex">
             <Link
@@ -121,12 +122,12 @@ export default async function BlogPostPage({ params }: PageProps) {
               Contact
             </Link>
           </nav>
-          <button
-            type="button"
+          <Link
+            href="https://www.dreamplaypianos.com/checkout-pages/buy-product"
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
           >
-            Book a Demo
-          </button>
+            Join the Waitlist
+          </Link>
         </div>
       </header>
 
