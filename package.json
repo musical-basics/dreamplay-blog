@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsx scripts/sync-schema.ts && next build",
+    "build": "tsx scripts/fix-db-schema.ts && next build",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start"
