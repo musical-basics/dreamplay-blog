@@ -29,6 +29,16 @@ async function fix() {
             await db.execute(sql.raw(`ALTER TABLE "theme_settings" ADD COLUMN IF NOT EXISTS "${col}" varchar;`))
         }
 
+        console.log('Patching "site_settings" table...')
+        await db.execute(sql`
+          CREATE TABLE IF NOT EXISTS "site_settings" (
+            "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            "theme" varchar,
+            "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+            "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+          );
+        `)
+
         console.log('Manual schema patch completed successfully.')
     } catch (error) {
         console.warn('Manual patch encountered an issue (ignoring):', error)

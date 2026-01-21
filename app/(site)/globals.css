@@ -5,7 +5,65 @@
 @custom-variant dark (&:is(.dark *));
 
 /* DreamPlay Pianos - Luxury Dark Theme */
+/* Light Mode (Default in CSS variables if no class) but we want 'dark' to be default class applied. 
+   Actually, the user wants "Dark" to be default visually if no class, BUT we toggle class on HTML.
+   Since our default theme logic sets 'dark' class by default, let's keep :root as Light Mode tokens 
+   and use .dark for the current values, OR keep :root as generic and perform the switch.
+   
+   The user said: "New Light Theme Specs: bg-stone-50, text-stone-800"
+   Let's create the light values in :root and move the current dark Oklch values to .dark selector.
+*/
+
+@import "tailwindcss/theme.css";
+
 :root {
+  /* Light Mode Defaults */
+  --background: oklch(0.98 0 0);
+  /* Stone-50 equivalent-ish or just mapped */
+  --foreground: oklch(0.2 0 0);
+  /* Stone-800 */
+  --card: oklch(1 0 0);
+  /* White */
+  --card-foreground: oklch(0.2 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0 0);
+  --primary: oklch(0.2 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+  --accent: oklch(0.55 0.2 25);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0 0);
+  /* Light border */
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.55 0.2 25);
+
+  /* Shared/Charts... */
+  --radius: 0.5rem;
+  /* ... copy others */
+  --chart-1: oklch(0.55 0.2 25);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Sidebar Light */
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.2 0 0);
+  --sidebar-primary: oklch(0.2 0 0);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.2 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0.55 0.2 25);
+}
+
+.dark {
+  /* Site Settings - Dark Mode (Existing Look) */
   --background: oklch(0.08 0 0);
   --foreground: oklch(0.98 0 0);
   --card: oklch(0.12 0 0);
@@ -25,12 +83,7 @@
   --border: oklch(0.22 0 0);
   --input: oklch(0.18 0 0);
   --ring: oklch(0.55 0.2 25);
-  --chart-1: oklch(0.55 0.2 25);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.5rem;
+
   --sidebar: oklch(0.1 0 0);
   --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-primary: oklch(0.55 0.2 25);
@@ -87,6 +140,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

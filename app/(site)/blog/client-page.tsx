@@ -51,7 +51,7 @@ export default function BlogClientPage({ posts }: BlogClientPageProps) {
             <img
               src="/DP update_DP outline white 2.png"
               alt="DreamPlay Pianos"
-              className="h-8 w-auto mb-1"
+              className="h-8 w-auto mb-1 invert dark:invert-0"
             />
           </Link>
           <nav className="hidden items-center gap-8 sm:flex">

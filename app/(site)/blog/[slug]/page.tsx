@@ -96,7 +96,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <img
               src="/DP update_DP outline white 2.png"
               alt="DreamPlay Pianos"
-              className="h-8 w-auto mb-1"
+              className="h-8 w-auto mb-1 invert dark:invert-0"
             />
           </Link>
           <nav className="hidden items-center gap-8 sm:flex">
@@ -239,17 +239,17 @@ export default async function BlogPostPage({ params }: PageProps) {
 
             {/* Article Body - Using Tailwind Typography */}
             <div
-              className="prose prose-lg prose-invert prose-dreamplay max-w-none
-                prose-headings:text-white prose-headings:font-serif prose-headings:font-normal
+              className="prose prose-lg dark:prose-invert prose-dreamplay max-w-none
+                prose-headings:font-serif prose-headings:font-normal prose-headings:text-stone-900 dark:prose-headings:text-white
                 prose-h2:mt-12 prose-h2:mb-6 prose-h2:text-3xl md:prose-h2:text-4xl
                 prose-h3:mt-10 prose-h3:mb-4 prose-h3:text-2xl md:prose-h3:text-3xl
-                prose-p:leading-relaxed prose-p:text-neutral-200 prose-p:font-normal prose-p:font-sans
+                prose-p:leading-relaxed prose-p:font-normal prose-p:font-sans prose-p:text-stone-800 dark:prose-p:text-neutral-200
                 prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-white prose-strong:font-semibold
+                prose-strong:font-semibold prose-strong:text-stone-900 dark:prose-strong:text-white
                 prose-blockquote:border-l-4 prose-blockquote:border-accent 
                 prose-blockquote:pl-6 prose-blockquote:not-italic 
                 prose-blockquote:text-xl md:prose-blockquote:text-2xl prose-blockquote:font-serif
-                prose-blockquote:text-white
+                prose-blockquote:text-stone-900 dark:prose-blockquote:text-white
                 [&_blockquote_cite]:block [&_blockquote_cite]:mt-3 [&_blockquote_cite]:text-sm 
                 [&_blockquote_cite]:font-sans [&_blockquote_cite]:text-muted-foreground [&_blockquote_cite]:not-italic
                 prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm

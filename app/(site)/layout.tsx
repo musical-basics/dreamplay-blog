@@ -47,12 +47,16 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const payload = await getPayload({ config: configPromise })
-  const themeSettings = await payload.findGlobal({
-    slug: 'theme-settings' as any,
-  }) as any
+
+  const [themeSettings, siteSettings] = await Promise.all([
+    payload.findGlobal({ slug: 'theme-settings' as any }) as any,
+    payload.findGlobal({ slug: 'site-settings' as any }) as any,
+  ])
+
+  const theme = (siteSettings as any)?.theme || 'dark'
 
   return (
-    <html lang="en">
+    <html lang="en" className={theme === 'dark' ? 'dark' : ''}>
       <body className={`font-sans antialiased`}>
         <ThemeApplicator settings={themeSettings} />
         {children}
