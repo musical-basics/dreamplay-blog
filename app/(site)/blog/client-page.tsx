@@ -68,13 +68,13 @@ export default function BlogClientPage({ posts }: BlogClientPageProps) {
               Blog
             </Link>
             <Link
-              href="/"
+              href="https://dreamplaypianos.com"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               Pianos
             </Link>
             <Link
-              href="/"
+              href="mailto:support@dreamplaypianos.com"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               Contact
