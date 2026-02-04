@@ -171,12 +171,12 @@ export default buildConfig({
             collections: {
                 media: {
                     generateFileURL: (file) => {
-                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${file.filename}`
+                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${encodeURIComponent(file.filename)}`
                     },
                 },
                 videos: {
                     generateFileURL: (file) => {
-                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${file.filename}`
+                        return `${process.env.PAYLOAD_PUBLIC_R2_URL}/${encodeURIComponent(file.filename)}`
                     },
                 },
             },
