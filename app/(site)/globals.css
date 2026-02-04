@@ -154,7 +154,7 @@
   --tw-prose-links: oklch(0.55 0.2 25);
   --tw-prose-bold: oklch(0.98 0 0);
   --tw-prose-counters: oklch(0.65 0 0);
-  --tw-prose-bullets: oklch(0.45 0 0);
+  --tw-prose-bullets: var(--foreground);
   --tw-prose-hr: oklch(0.22 0 0);
   --tw-prose-quotes: oklch(0.85 0 0);
   --tw-prose-quote-borders: oklch(0.55 0.2 25);
