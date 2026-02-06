@@ -1,0 +1,45 @@
+{
+    "output": {
+        "filePath": "repomix-output.xml",
+        "style": "xml",
+        "removeComments": false,
+        "removeEmptyLines": false,
+        "topFilesLen": 5
+    },
+    "include": [
+        "**/*"
+    ],
+    "ignore": {
+        "useGitignore": true,
+        "useDefaultPatterns": true,
+        "customPatterns": [
+            "**/node_modules/**",
+            "**/.next/**",
+            "**/.git/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.DS_Store",
+            "**/package-lock.json",
+            "**/yarn.lock",
+            "**/pnpm-lock.yaml",
+            "**/*.lock",
+            "**/*.svg",
+            "**/*.png",
+            "**/*.jpg",
+            "**/*.jpeg",
+            "**/*.gif",
+            "**/*.webp",
+            "**/*.mp4",
+            "**/*.webm",
+            "**/*.ico",
+            "**/*.eot",
+            "**/*.ttf",
+            "**/*.woff",
+            "**/*.woff2",
+            "**/.env",
+            "**/.env.*",
+            "**/postgres-data/**",
+            "**/tmp/**"
+        ]
+    }
+}

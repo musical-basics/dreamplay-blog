@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Cormorant_Garamond } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -61,6 +62,10 @@ export default async function RootLayout({
         <ThemeApplicator settings={themeSettings} />
         {children}
         <Analytics />
+        <Script
+          src="https://data.dreamplaypianos.com/tracker.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
