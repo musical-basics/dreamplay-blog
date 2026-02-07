@@ -17,21 +17,8 @@ export const metadata: Metadata = {
   description: 'Discover the world of luxury pianos through tutorials, artist stories, and product news from DreamPlay Pianos.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/ICON Black SQUARE.jpg',
+    apple: '/ICON Black SQUARE.jpg',
   },
 }
 
