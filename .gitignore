@@ -33,3 +33,9 @@ next-env.d.ts
 
 # Payload
 /media
+
+# Repomix
+repomix-output.*
+
+# Custom Debug Scripts
+scripts/debug-*.ts
