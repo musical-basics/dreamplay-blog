@@ -152,32 +152,16 @@ export default async function BlogPostPage({ params }: PageProps) {
       </header>
 
       <main className="pt-16">
-        {/* Hero Section: YouTube embed > Hero Image */}
-        {youtubeId ? (
-          <section className="relative w-full bg-black">
-            <div className="mx-auto max-w-5xl">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  className="absolute inset-0 h-full w-full"
-                  src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
-                  title={post.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section className="relative h-[50vh] min-h-[400px] lg:h-[60vh]">
-            <img
-              src={heroImageUrl || "/placeholder.svg"}
-              alt={post.title}
-              className="h-full w-full object-cover"
-            />
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          </section>
-        )}
+        {/* Hero Image */}
+        <section className="relative h-[50vh] min-h-[400px] lg:h-[60vh]">
+          <img
+            src={heroImageUrl || "/placeholder.svg"}
+            alt={post.title}
+            className="h-full w-full object-cover"
+          />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        </section>
 
         {/* Article Content */}
         <article className="relative -mt-32 px-4 pb-16 sm:px-6 lg:px-8">
@@ -272,6 +256,21 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               </div>
             </header>
+
+            {/* YouTube Embed (below title card) */}
+            {youtubeId && (
+              <div className="mb-10 overflow-hidden rounded-xl">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute inset-0 h-full w-full"
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
+                    title={post.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Article Body - Using Tailwind Typography */}
             <div
