@@ -19,7 +19,7 @@ const typographyFields = (prefix: string, label: string, defaultSize: string): F
                 name: `${prefix}Weight`,
                 label: `${label} Weight`,
                 type: 'select',
-                defaultValue: 'normal',
+                defaultValue: '400',
                 options: [
                     { label: 'Light', value: '300' },
                     { label: 'Normal', value: '400' },
@@ -34,7 +34,7 @@ const typographyFields = (prefix: string, label: string, defaultSize: string): F
                 name: `${prefix}Family`,
                 label: `${label} Font`,
                 type: 'select',
-                defaultValue: 'serif',
+                defaultValue: 'var(--font-serif)',
                 options: [
                     { label: 'Serif (Cormorant)', value: 'var(--font-serif)' },
                     { label: 'Sans (Geist)', value: 'var(--font-sans)' },
