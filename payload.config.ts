@@ -105,6 +105,15 @@ export default buildConfig({
                     },
                 },
                 {
+                    name: 'heroYoutubeUrl',
+                    type: 'text',
+                    required: false,
+                    admin: {
+                        position: 'sidebar',
+                        description: 'Paste a public YouTube URL (e.g. https://www.youtube.com/watch?v=...). Takes priority over Hero Image.',
+                    },
+                },
+                {
                     name: 'excerpt',
                     type: 'textarea',
                 },

@@ -23,6 +23,22 @@ import { serializeLexical } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * Extracts a YouTube video ID from various URL formats.
+ * Supports: youtube.com/watch?v=, youtu.be/, youtube.com/embed/, youtube.com/shorts/
+ */
+function extractYoutubeId(url: string): string | null {
+  if (!url) return null
+  const patterns = [
+    /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ]
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match) return match[1]
+  }
+  return null
+}
+
 interface PageProps {
   params: Promise<{
     slug: string;
@@ -76,6 +92,10 @@ export default async function BlogPostPage({ params }: PageProps) {
     post.heroImage && typeof post.heroImage !== 'string'
       ? (post.heroImage as Media).url
       : "/placeholder.svg"
+
+  // Extract YouTube video ID if a YouTube URL is provided
+  const heroYoutubeUrl = (post as any).heroYoutubeUrl as string | undefined
+  const youtubeId = heroYoutubeUrl ? extractYoutubeId(heroYoutubeUrl) : null
 
   const contentHtml = serializeLexical(post.content)
 
@@ -132,16 +152,32 @@ export default async function BlogPostPage({ params }: PageProps) {
       </header>
 
       <main className="pt-16">
-        {/* Hero Image */}
-        <section className="relative h-[50vh] min-h-[400px] lg:h-[60vh]">
-          <img
-            src={heroImageUrl || "/placeholder.svg"}
-            alt={post.title}
-            className="h-full w-full object-cover"
-          />
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-        </section>
+        {/* Hero Section: YouTube embed > Hero Image */}
+        {youtubeId ? (
+          <section className="relative w-full bg-black">
+            <div className="mx-auto max-w-5xl">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  className="absolute inset-0 h-full w-full"
+                  src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
+                  title={post.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="relative h-[50vh] min-h-[400px] lg:h-[60vh]">
+            <img
+              src={heroImageUrl || "/placeholder.svg"}
+              alt={post.title}
+              className="h-full w-full object-cover"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          </section>
+        )}
 
         {/* Article Content */}
         <article className="relative -mt-32 px-4 pb-16 sm:px-6 lg:px-8">
