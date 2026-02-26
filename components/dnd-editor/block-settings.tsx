@@ -78,7 +78,7 @@ function NumberSlider({ value, onChange, label, min, max, step = 1, unit = 'px' 
             </div>
             <Slider
                 value={[value]}
-                onValueChange={([v]) => onChange(v)}
+                onValueChange={([v]: number[]) => onChange(v)}
                 min={min}
                 max={max}
                 step={step}
