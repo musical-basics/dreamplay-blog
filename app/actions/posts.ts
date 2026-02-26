@@ -114,6 +114,82 @@ export async function unpublishPost(id: string): Promise<{ error: string | null 
     })
 }
 
+// ─── TOGGLE POST STATUS ─────────────────────────────────
+export async function togglePostStatus(id: string): Promise<Post | null> {
+    const supabase = await createClient()
+    const { data: post } = await supabase
+        .from("posts")
+        .select("status")
+        .eq("id", id)
+        .single()
+
+    if (!post) return null
+
+    const newStatus = post.status === "published" ? "draft" : "published"
+    const { data: updated, error } = await supabase
+        .from("posts")
+        .update({
+            status: newStatus,
+            published_at: newStatus === "published" ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select("*")
+        .single()
+
+    if (error) return null
+
+    revalidatePath("/")
+    revalidatePath("/posts")
+    return updated
+}
+
+// ─── BULK DELETE POSTS ───────────────────────────────────
+export async function deletePosts(ids: string[]): Promise<{ error: string | null }> {
+    const supabase = await createClient()
+    const { error } = await supabase.from("posts").delete().in("id", ids)
+
+    if (error) return { error: error.message }
+
+    revalidatePath("/")
+    revalidatePath("/posts")
+    return { error: null }
+}
+
+// ─── BULK UPDATE STATUS ──────────────────────────────────
+export async function updatePostsStatus(ids: string[], status: "draft" | "published"): Promise<{ error: string | null }> {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from("posts")
+        .update({
+            status,
+            published_at: status === "published" ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString(),
+        })
+        .in("id", ids)
+
+    if (error) return { error: error.message }
+
+    revalidatePath("/")
+    revalidatePath("/posts")
+    return { error: null }
+}
+
+// ─── GET POST STATS ──────────────────────────────────────
+export async function getPostStats(): Promise<{ total: number; published: number; draft: number }> {
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from("posts")
+        .select("status")
+
+    const posts = data || []
+    return {
+        total: posts.length,
+        published: posts.filter(p => p.status === "published").length,
+        draft: posts.filter(p => p.status === "draft").length,
+    }
+}
+
 // ─── GET TEMPLATE LIST (for Copilot reference picker) ────
 export async function getTemplateList(): Promise<{ id: string; name: string; created_at: string }[]> {
     const supabase = await createClient()
