@@ -24,3 +24,19 @@ CREATE TABLE IF NOT EXISTS post_versions (
   prompt text,
   created_at timestamptz DEFAULT now()
 );
+
+-- AI Knowledgebase for research papers (PDF-to-Markdown)
+CREATE TABLE IF NOT EXISTS research_knowledgebase (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title text NOT NULL,
+  author text,
+  year text,
+  url text,
+  content text NOT NULL,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE research_knowledgebase ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow authenticated full access" ON research_knowledgebase FOR ALL TO authenticated USING (true);

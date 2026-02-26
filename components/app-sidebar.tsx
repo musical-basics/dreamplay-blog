@@ -19,6 +19,7 @@ const navSections = [
         label: "Content",
         items: [
             { name: "Blog Posts", href: "/posts", icon: FileText },
+            { name: "Knowledgebase", href: "/knowledgebase", icon: BookOpen },
             { name: "Assets Library", href: "/assets", icon: ImageIcon },
         ],
     },
