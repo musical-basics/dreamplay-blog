@@ -6,7 +6,7 @@ import type { EmailBlock, HeadingProps, TextProps, ImageProps, ButtonProps, Divi
 // These render aesthetically in React — NOT the same as the email HTML compiler output.
 
 function HeadingPreview({ props }: { props: HeadingProps }) {
-    const Tag = props.level as keyof JSX.IntrinsicElements
+    const Tag = props.level as 'h1' | 'h2' | 'h3'
     const sizes = { h1: 'text-2xl', h2: 'text-xl', h3: 'text-lg' }
     return (
         <div style={{ textAlign: props.alignment, padding: '10px 20px' }}>
