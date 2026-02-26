@@ -1,22 +1,27 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
 const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-sans"
+  variable: "--font-geist"
 })
 const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-mono"
+  variable: "--font-geist-mono"
+})
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
 })
 
 export const metadata: Metadata = {
-  title: "DreamPlay Blog",
-  description: "AI-Native Blog CMS",
+  title: "DreamPlay Pianos | Blog",
+  description: "Discover the world of luxury pianos through tutorials, artist stories, and product news from DreamPlay Pianos.",
 }
 
 export default function RootLayout({
@@ -26,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} font-sans antialiased`}>
         {children}
         <Toaster />
         <Analytics />
