@@ -23,7 +23,7 @@ export default async function BlogIndexPage() {
         title: post.title || '',
         slug: post.slug || '',
         excerpt: post.excerpt || '',
-        content: post.html || '',
+        content: post.html_content || '',
         heroImage: post.featured_image || '/placeholder.svg',
         category: (post.category as BlogPost['category']) || 'tutorials',
         author: {

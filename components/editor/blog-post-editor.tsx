@@ -6,7 +6,7 @@ import { CodePane } from "./code-pane"
 import { PreviewPane } from "./preview-pane"
 import { CopilotPane } from "./copilot-pane"
 import { renderTemplate } from "@/lib/render-template"
-import { Monitor, Smartphone, Loader2, Check, PanelRightClose, PanelRightOpen, ArrowLeft, History, Globe } from "lucide-react"
+import { Monitor, Smartphone, Loader2, Check, PanelRightClose, PanelRightOpen, ArrowLeft, History, Globe, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -29,7 +29,9 @@ interface BlogPostEditorProps {
     postName: string
     onNameChange: (name: string) => void
     onSave?: () => void
+    onPublish?: () => void
     postId?: string | null
+    postStatus?: 'draft' | 'published'
     onRestore?: (backup: { html_content: string; variable_values: Record<string, any> }) => void
 }
 
@@ -47,11 +49,14 @@ export function BlogPostEditor({
     postName,
     onNameChange,
     onSave,
+    onPublish,
     postId,
+    postStatus,
     onRestore
 }: BlogPostEditorProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
+    const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'success'>('idle')
     const [isCopilotOpen, setIsCopilotOpen] = useState(true)
     const copilotRef = useRef<ImperativePanelHandle>(null)
     const searchParams = useSearchParams()
@@ -109,6 +114,14 @@ export function BlogPostEditor({
         await fetchBackups()
         setSaveStatus('success')
         setTimeout(() => setSaveStatus('idle'), 2000)
+    }
+
+    const handlePublishClick = async () => {
+        if (!onPublish) return
+        setPublishStatus('publishing')
+        await Promise.resolve(onPublish())
+        setPublishStatus('success')
+        setTimeout(() => setPublishStatus('idle'), 2000)
     }
 
     const toggleCopilot = () => {
@@ -246,6 +259,30 @@ export function BlogPostEditor({
                                         {saveStatus === 'idle' && "Save Post"}
                                         {saveStatus === 'saving' && "Saving..."}
                                         {saveStatus === 'success' && "Saved!"}
+                                    </button>
+                                )}
+
+                                {/* Publish Button */}
+                                {onPublish && postId && (
+                                    <button
+                                        type="button"
+                                        onClick={handlePublishClick}
+                                        disabled={publishStatus === 'publishing'}
+                                        className={cn(
+                                            "px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2",
+                                            publishStatus === 'success'
+                                                ? "bg-green-600 text-white"
+                                                : postStatus === 'published'
+                                                    ? "bg-amber-600 text-white hover:bg-amber-700"
+                                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                        )}
+                                    >
+                                        {publishStatus === 'publishing' && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        {publishStatus === 'success' && <Check className="w-4 h-4" />}
+                                        {publishStatus === 'idle' && <Send className="w-4 h-4" />}
+                                        {publishStatus === 'publishing' && (postStatus === 'published' ? "Unpublishing..." : "Publishing...")}
+                                        {publishStatus === 'success' && (postStatus === 'published' ? "Unpublished!" : "Published!")}
+                                        {publishStatus === 'idle' && (postStatus === 'published' ? "Unpublish" : "Publish Post")}
                                     </button>
                                 )}
 

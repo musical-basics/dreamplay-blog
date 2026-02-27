@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { BlogPostEditor } from "@/components/editor/blog-post-editor"
 import { createClient } from "@/lib/supabase/client"
+import { togglePostStatus } from "@/app/actions/posts"
 import { Post } from "@/lib/types"
 
 function EditorInner() {
@@ -18,6 +19,7 @@ function EditorInner() {
     const [title, setTitle] = useState("Untitled Post")
     const [slug, setSlug] = useState("")
     const [excerpt, setExcerpt] = useState("")
+    const [postStatus, setPostStatus] = useState<'draft' | 'published'>('draft')
     const [loading, setLoading] = useState(!!postId)
 
     // Load existing post if ID provided
@@ -38,6 +40,7 @@ function EditorInner() {
                 setTitle(data.title)
                 setSlug(data.slug)
                 setExcerpt(data.excerpt || "")
+                setPostStatus(data.status || 'draft')
             }
             setLoading(false)
         }
@@ -79,6 +82,14 @@ function EditorInner() {
         }
     }
 
+    const handlePublish = async () => {
+        if (!postId) return
+        const updated = await togglePostStatus(postId)
+        if (updated) {
+            setPostStatus(updated.status as 'draft' | 'published')
+        }
+    }
+
     const handleRestore = (backup: { html_content: string; variable_values: Record<string, any> }) => {
         setHtml(backup.html_content)
         setAssets(backup.variable_values || {})
@@ -107,7 +118,9 @@ function EditorInner() {
             postName={title}
             onNameChange={setTitle}
             onSave={handleSave}
+            onPublish={handlePublish}
             postId={postId}
+            postStatus={postStatus}
             onRestore={handleRestore}
         />
     )

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatDate, getCategoryLabel } from "@/lib/blog-data";
 import { createClient } from "@/lib/supabase/server";
+import { renderTemplate } from "@/lib/render-template";
 import type { BlogPost } from "@/lib/blog-data";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     if (error || !post) {
         notFound();
     }
+
+    // Render template: replace {{variable}} placeholders with stored asset values
+    const renderedContent = renderTemplate(
+        post.html_content || "",
+        post.variable_values || {}
+    );
 
     const heroImageUrl = post.featured_image || "/placeholder.svg";
     const displayCategory = (post.category as BlogPost["category"]) || "tutorials";
@@ -206,7 +213,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 [&_blockquote_cite]:font-sans [&_blockquote_cite]:text-muted-foreground [&_blockquote_cite]:not-italic
                 prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm
                 prose-pre:bg-card prose-pre:border prose-pre:border-border"
-                            dangerouslySetInnerHTML={{ __html: post.html || '' }}
+                            dangerouslySetInnerHTML={{ __html: renderedContent }}
                         />
                     </div>
                 </article>
