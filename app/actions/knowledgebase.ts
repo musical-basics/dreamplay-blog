@@ -52,7 +52,7 @@ export async function saveResearchDoc(doc: Partial<ResearchDoc>) {
         if (error) throw new Error(error.message)
     }
 
-    revalidatePath("/knowledgebase")
+    revalidatePath("/admin/knowledgebase")
     return { success: true }
 }
 
@@ -60,7 +60,7 @@ export async function toggleResearchStatus(id: string, is_active: boolean) {
     const supabase = await createClient()
     const { error } = await supabase.from("research_knowledgebase").update({ is_active }).eq("id", id)
     if (error) throw new Error(error.message)
-    revalidatePath("/knowledgebase")
+    revalidatePath("/admin/knowledgebase")
     return { success: true }
 }
 
@@ -68,6 +68,6 @@ export async function deleteResearchDoc(id: string) {
     const supabase = await createClient()
     const { error } = await supabase.from("research_knowledgebase").delete().eq("id", id)
     if (error) throw new Error(error.message)
-    revalidatePath("/knowledgebase")
+    revalidatePath("/admin/knowledgebase")
     return { success: true }
 }
