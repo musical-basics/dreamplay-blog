@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, type ResearchDoc } from "@/app/actions/knowledgebase"
+import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, type ResearchDoc } from "@/app/actions/knowledgebase"
 import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,12 +49,10 @@ export default function KnowledgebasePage() {
         setIsConverting(true)
         setStatusMessage({ type: 'success', text: 'Extracting PDF... Gemini is reading the document (~15s).' })
 
-        const formData = new FormData()
-        formData.append("file", file)
-
         try {
-            const res = await fetch("/api/extract-pdf", { method: "POST", body: formData })
-            const data = await res.json()
+            const fd = new FormData()
+            fd.append("file", file)
+            const data = await extractPdf(fd)
             if (data.error) throw new Error(data.error)
 
             setForm(prev => ({

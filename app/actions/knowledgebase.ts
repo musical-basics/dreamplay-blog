@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { GoogleGenAI } from "@google/genai"
 
 export interface ResearchDoc {
     id: string;
@@ -71,3 +72,52 @@ export async function deleteResearchDoc(id: string) {
     revalidatePath("/admin/knowledgebase")
     return { success: true }
 }
+
+export async function extractPdf(formData: FormData): Promise<{ markdown?: string; error?: string }> {
+    try {
+        const file = formData.get("file") as File
+        if (!file || file.type !== "application/pdf") {
+            return { error: "Invalid file. Please upload a PDF." }
+        }
+
+        const arrayBuffer = await file.arrayBuffer()
+        const base64Data = Buffer.from(arrayBuffer).toString("base64")
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        {
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: "application/pdf"
+                            }
+                        },
+                        {
+                            text: "Extract the complete text of this research paper and convert it into highly readable Markdown. Preserve all statistics, quotes, headings, and data accurately. Remove any page numbers, headers, footers, or irrelevant publishing stamps. Do not include introductory conversational text, just output the raw Markdown."
+                        }
+                    ]
+                }
+            ]
+        })
+
+        let markdown = response.text || ""
+
+        if (markdown.startsWith("```markdown")) {
+            markdown = markdown.replace(/^```markdown\n/, "").replace(/\n```$/, "")
+        } else if (markdown.startsWith("```")) {
+            markdown = markdown.replace(/^```\n/, "").replace(/\n```$/, "")
+        }
+
+        return { markdown: markdown.trim() }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error"
+        console.error("PDF Parsing Error:", error)
+        return { error: message }
+    }
+}
+
