@@ -130,7 +130,7 @@ export function BlogPostEditor({
                     <div className="h-full flex flex-col">
                         {/* Header Link */}
                         <div className="p-3 border-b border-border">
-                            <Link href="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                            <Link href="/admin" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                                 <ArrowLeft className="w-3 h-3" />
                                 Back to Dashboard
                             </Link>

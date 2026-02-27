@@ -144,7 +144,7 @@ export function AssetLoader({ variables, assets, onUpdateAsset, showBackButton =
         <aside className="w-full h-full flex flex-col bg-card overflow-hidden">
             <div className="p-4 border-b border-border">
                 {showBackButton && (
-                    <Link href="/" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <Link href="/admin" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft className="w-3 h-3" />
                         Back to Dashboard
                     </Link>

@@ -12,14 +12,14 @@ const navSections = [
     {
         label: "Overview",
         items: [
-            { name: "Dashboard", href: "/", icon: Home },
+            { name: "Dashboard", href: "/admin", icon: Home },
         ],
     },
     {
         label: "Content",
         items: [
-            { name: "Blog Posts", href: "/posts", icon: FileText },
-            { name: "Knowledgebase", href: "/knowledgebase", icon: BookOpen },
+            { name: "Blog Posts", href: "/admin/posts", icon: FileText },
+            { name: "Knowledgebase", href: "/admin/knowledgebase", icon: BookOpen },
             { name: "Assets Library", href: "/assets", icon: ImageIcon },
         ],
     },
@@ -36,7 +36,7 @@ export function AppSidebar() {
     const pathname = usePathname()
 
     const isActive = (href: string) => {
-        if (href === "/") return pathname === "/"
+        if (href === "/admin") return pathname === "/admin"
         return pathname === href || pathname.startsWith(href + "/")
     }
 
@@ -84,10 +84,10 @@ export function AppSidebar() {
                     {/* Below separator */}
                     <div className="pt-2 border-t border-border space-y-1">
                         <Link
-                            href="/settings"
+                            href="/admin/settings"
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                                isActive("/settings")
+                                isActive("/admin/settings")
                                     ? "bg-primary/10 text-primary"
                                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}

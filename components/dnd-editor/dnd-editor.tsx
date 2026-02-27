@@ -135,7 +135,7 @@ export function DndEmailEditor({
             <div className="flex-shrink-0 w-[280px] border-r border-border h-full flex flex-col bg-card">
                 {/* Back Link */}
                 <div className="p-3 border-b border-border">
-                    <Link href="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <Link href="/admin" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft className="w-3 h-3" />
                         Back to Dashboard
                     </Link>
