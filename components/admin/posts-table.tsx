@@ -4,11 +4,20 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import {
     Plus, Search, MoreHorizontal, Pencil, ExternalLink,
-    Trash2, Eye, EyeOff, ChevronDown
+    Trash2, Eye, EyeOff, ChevronDown, ImageIcon, Upload, X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
     DropdownMenu,
@@ -55,6 +64,12 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
     const [postToDelete, setPostToDelete] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
 
+    // Featured image dialog state
+    const [imageDialogOpen, setImageDialogOpen] = useState(false)
+    const [imagePostId, setImagePostId] = useState<string | null>(null)
+    const [imageUrl, setImageUrl] = useState('')
+    const [imageUploading, setImageUploading] = useState(false)
+
     // Filter posts
     const filteredPosts = posts.filter(post => {
         const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -95,6 +110,44 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
             await updatePost(id, { category })
             setPosts(prev => prev.map(p => p.id === id ? { ...p, category } : p))
         })
+    }
+
+    // ── Featured image handlers ──────────────────────────────
+    const openImageDialog = (post: Post) => {
+        setImagePostId(post.id)
+        setImageUrl(post.featured_image || '')
+        setImageDialogOpen(true)
+    }
+
+    const handleSaveFeaturedImage = () => {
+        if (!imagePostId) return
+        const url = imageUrl.trim()
+        startTransition(async () => {
+            await updatePost(imagePostId, { featured_image: url || null })
+            setPosts(prev => prev.map(p =>
+                p.id === imagePostId ? { ...p, featured_image: url || null } : p
+            ))
+            setImageDialogOpen(false)
+        })
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setImageUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            const res = await fetch('/api/upload', { method: 'POST', body: formData })
+            const data = await res.json()
+            if (data.url) {
+                setImageUrl(data.url)
+            }
+        } catch (err) {
+            console.error('Upload failed:', err)
+        } finally {
+            setImageUploading(false)
+        }
     }
 
     const handleDelete = (id: string) => {
@@ -225,6 +278,7 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                                     aria-label="Select all"
                                 />
                             </th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Thumbnail</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Title</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Slug</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
@@ -236,7 +290,7 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                     <tbody>
                         {filteredPosts.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                                <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                                     No posts found
                                 </td>
                             </tr>
@@ -249,6 +303,23 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                                             onCheckedChange={() => toggleSelect(post.id)}
                                             aria-label={`Select ${post.title}`}
                                         />
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <button
+                                            onClick={() => openImageDialog(post)}
+                                            className="group/thumb relative h-10 w-14 rounded border border-border overflow-hidden bg-muted/30 hover:border-accent transition-colors cursor-pointer flex items-center justify-center"
+                                            title={post.featured_image ? 'Change thumbnail' : 'Set thumbnail'}
+                                        >
+                                            {post.featured_image ? (
+                                                <img
+                                                    src={post.featured_image}
+                                                    alt=""
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                                            )}
+                                        </button>
                                     </td>
                                     <td className="px-4 py-3">
                                         <Link
@@ -383,6 +454,71 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Featured Image Dialog */}
+            <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Featured Image</DialogTitle>
+                        <DialogDescription>
+                            Set the thumbnail image for this post. Paste a URL or upload a file.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        {/* Preview */}
+                        {imageUrl && (
+                            <div className="relative aspect-video w-full rounded-lg border border-border overflow-hidden bg-muted/30">
+                                <img
+                                    src={imageUrl}
+                                    alt="Preview"
+                                    className="h-full w-full object-cover"
+                                />
+                                <button
+                                    onClick={() => setImageUrl('')}
+                                    className="absolute top-2 right-2 rounded-full bg-background/80 p-1 hover:bg-background transition-colors cursor-pointer"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* URL Input */}
+                        <div className="space-y-2">
+                            <Label htmlFor="image-url">Image URL</Label>
+                            <Input
+                                id="image-url"
+                                placeholder="https://example.com/image.jpg"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Upload */}
+                        <div className="space-y-2">
+                            <Label>Or upload an image</Label>
+                            <label className="flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 cursor-pointer hover:border-accent hover:bg-muted/30 transition-colors">
+                                <Upload className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                    {imageUploading ? 'Uploading...' : 'Choose file'}
+                                </span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageUpload}
+                                    disabled={imageUploading}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setImageDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSaveFeaturedImage} disabled={isPending}>
+                            {isPending ? 'Saving...' : 'Save'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
