@@ -4,20 +4,12 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import {
     Plus, Search, MoreHorizontal, Pencil, ExternalLink,
-    Trash2, Eye, EyeOff, ChevronDown, ImageIcon, Upload, X
+    Trash2, Eye, EyeOff, ChevronDown, ImageIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
+import { AssetPickerModal } from '@/components/editor/asset-picker-modal'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
     DropdownMenu,
@@ -64,11 +56,9 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
     const [postToDelete, setPostToDelete] = useState<string | null>(null)
     const [isPending, startTransition] = useTransition()
 
-    // Featured image dialog state
-    const [imageDialogOpen, setImageDialogOpen] = useState(false)
+    // Featured image picker state
+    const [imagePickerOpen, setImagePickerOpen] = useState(false)
     const [imagePostId, setImagePostId] = useState<string | null>(null)
-    const [imageUrl, setImageUrl] = useState('')
-    const [imageUploading, setImageUploading] = useState(false)
 
     // Filter posts
     const filteredPosts = posts.filter(post => {
@@ -113,41 +103,20 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
     }
 
     // ── Featured image handlers ──────────────────────────────
-    const openImageDialog = (post: Post) => {
+    const openImagePicker = (post: Post) => {
         setImagePostId(post.id)
-        setImageUrl(post.featured_image || '')
-        setImageDialogOpen(true)
+        setImagePickerOpen(true)
     }
 
-    const handleSaveFeaturedImage = () => {
+    const handleAssetSelect = (url: string) => {
         if (!imagePostId) return
-        const url = imageUrl.trim()
         startTransition(async () => {
             await updatePost(imagePostId, { featured_image: url || null })
             setPosts(prev => prev.map(p =>
                 p.id === imagePostId ? { ...p, featured_image: url || null } : p
             ))
-            setImageDialogOpen(false)
+            setImagePickerOpen(false)
         })
-    }
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
-        setImageUploading(true)
-        try {
-            const formData = new FormData()
-            formData.append('file', file)
-            const res = await fetch('/api/upload', { method: 'POST', body: formData })
-            const data = await res.json()
-            if (data.url) {
-                setImageUrl(data.url)
-            }
-        } catch (err) {
-            console.error('Upload failed:', err)
-        } finally {
-            setImageUploading(false)
-        }
     }
 
     const handleDelete = (id: string) => {
@@ -306,7 +275,7 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                                     </td>
                                     <td className="px-4 py-3">
                                         <button
-                                            onClick={() => openImageDialog(post)}
+                                            onClick={() => openImagePicker(post)}
                                             className="group/thumb relative h-10 w-14 rounded border border-border overflow-hidden bg-muted/30 hover:border-accent transition-colors cursor-pointer flex items-center justify-center"
                                             title={post.featured_image ? 'Change thumbnail' : 'Set thumbnail'}
                                         >
@@ -455,70 +424,12 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Featured Image Dialog */}
-            <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Featured Image</DialogTitle>
-                        <DialogDescription>
-                            Set the thumbnail image for this post. Paste a URL or upload a file.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        {/* Preview */}
-                        {imageUrl && (
-                            <div className="relative aspect-video w-full rounded-lg border border-border overflow-hidden bg-muted/30">
-                                <img
-                                    src={imageUrl}
-                                    alt="Preview"
-                                    className="h-full w-full object-cover"
-                                />
-                                <button
-                                    onClick={() => setImageUrl('')}
-                                    className="absolute top-2 right-2 rounded-full bg-background/80 p-1 hover:bg-background transition-colors cursor-pointer"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </div>
-                        )}
-
-                        {/* URL Input */}
-                        <div className="space-y-2">
-                            <Label htmlFor="image-url">Image URL</Label>
-                            <Input
-                                id="image-url"
-                                placeholder="https://example.com/image.jpg"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                            />
-                        </div>
-
-                        {/* Upload */}
-                        <div className="space-y-2">
-                            <Label>Or upload an image</Label>
-                            <label className="flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 cursor-pointer hover:border-accent hover:bg-muted/30 transition-colors">
-                                <Upload className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">
-                                    {imageUploading ? 'Uploading...' : 'Choose file'}
-                                </span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                    disabled={imageUploading}
-                                />
-                            </label>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setImageDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveFeaturedImage} disabled={isPending}>
-                            {isPending ? 'Saving...' : 'Save'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Featured Image Picker (reuses editor asset picker) */}
+            <AssetPickerModal
+                isOpen={imagePickerOpen}
+                onClose={() => setImagePickerOpen(false)}
+                onSelect={handleAssetSelect}
+            />
         </div>
     )
 }
