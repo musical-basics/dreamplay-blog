@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google"
+import { Geist, Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
@@ -18,6 +18,10 @@ const cormorant = Cormorant_Garamond({
   weight: ["400", "500", "600", "700"],
   variable: "--font-cormorant",
 })
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+})
 
 export const metadata: Metadata = {
   title: "DreamPlay Pianos | Blog",
@@ -31,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} font-sans antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${manrope.variable} font-sans antialiased`}>
         {children}
         <Toaster />
         <Analytics />

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import { Music } from "lucide-react";
 import type { BlogPost } from "@/lib/blog-data";
 import { FeaturedPost } from "@/components/blog/featured-post";
 import { BlogCard } from "@/components/blog/blog-card";
 import { CategoryFilter } from "@/components/blog/category-filter";
 import { NewsletterForm } from "@/components/blog/newsletter-form";
+import { BlogHeader } from "@/components/blog/blog-header";
 
 type Category = "all" | "tutorials" | "artist-stories" | "product-news";
 
@@ -42,55 +42,9 @@ export default function BlogClientPage({ posts }: BlogClientPageProps) {
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="border-b border-border">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                    >
-                        <img
-                            src="/DP update_DP outline white 2.png"
-                            alt="DreamPlay Pianos"
-                            className="h-8 w-auto mb-1 invert dark:invert-0"
-                        />
-                    </Link>
-                    <nav className="hidden items-center gap-8 sm:flex">
-                        <Link
-                            href="/"
-                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="/blog"
-                            className="text-sm font-medium text-foreground"
-                        >
-                            Blog
-                        </Link>
-                        <Link
-                            href="https://dreamplaypianos.com"
-                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            Pianos
-                        </Link>
-                        <Link
-                            href="mailto:support@dreamplaypianos.com"
-                            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            Contact
-                        </Link>
-                    </nav>
-                    <Link
-                        href="https://www.dreamplaypianos.com/checkout-pages/buy-product"
-                        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
-                    >
-                        Join the Waitlist
-                    </Link>
-                </div>
-            </header>
+            <BlogHeader />
 
-            <main>
+            <main className="pt-[120px]">
                 {/* Hero Section with Featured Post */}
                 <section className="px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
                     <div className="mx-auto max-w-7xl">
