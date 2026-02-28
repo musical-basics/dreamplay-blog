@@ -40,7 +40,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <BlogHeader forceOpaque={true} darkMode={true} />
 
             {/* Back to Blog link */}
-            <div className="mx-auto w-full max-w-5xl px-6 pt-[120px] md:pt-[140px]">
+            <div className="mx-auto w-full max-w-6xl px-6 pt-[120px] md:pt-[140px]">
                 <Link
                     href="/blog"
                     className="inline-flex items-center gap-2 font-sans text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 transition-colors hover:text-white"
@@ -51,15 +51,15 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
 
             {/* Blog Content (sandboxed in iframe to prevent style leakage) */}
-            <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-12">
-                <div className="rounded-none border border-white/10 bg-white p-2 md:p-12 shadow-2xl">
+            <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12">
+                <div className="rounded-none border border-white/10 bg-white p-2 md:p-8 shadow-2xl">
                     <BlogContentFrame html={renderedContent} />
                 </div>
             </main>
 
             {/* Footer */}
             <footer className="border-t border-white/10 bg-[#050505] px-6 py-12 mt-12">
-                <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 sm:flex-row">
+                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
                     <div className="flex items-center gap-2">
                         <Music className="h-5 w-5 text-white/50" />
                         <span className="font-serif text-lg tracking-wide text-white">DreamPlay Pianos</span>
