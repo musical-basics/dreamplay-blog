@@ -231,6 +231,17 @@ export async function updateAssetDescription(assetId: string, description: strin
     return { success: true }
 }
 
+export async function toggleAssetStar(assetId: string, isStarred: boolean) {
+    const supabase = getSupabase()
+    const { error } = await supabase
+        .from("media_assets")
+        .update({ is_starred: isStarred })
+        .eq("id", assetId)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+}
+
 // Fetches ALL assets for the admin page to let you tag them
 export async function getAllLibraryAssets() {
     const supabase = getSupabase()
@@ -245,7 +256,7 @@ export async function getAllLibraryAssets() {
     return data || []
 }
 
-// Fetches ONLY described assets to feed to the AI Prompt (saves tokens)
+// Fetches ONLY starred + described assets to feed to the AI Prompt
 export async function getDescribedAssets() {
     const supabase = getSupabase()
     try {
@@ -253,6 +264,7 @@ export async function getDescribedAssets() {
             .from("media_assets")
             .select("public_url, description, filename")
             .eq("is_deleted", false)
+            .eq("is_starred", true)
             .neq("filename", ".folder")
             .not("description", "is", null)
             .neq("description", "")
@@ -263,3 +275,4 @@ export async function getDescribedAssets() {
         return [] // Fallback if column doesn't exist yet
     }
 }
+
