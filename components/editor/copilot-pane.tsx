@@ -36,6 +36,12 @@ interface ChatSession {
 const MAX_SESSIONS = 5
 const STORAGE_PREFIX = "blog_copilot_sessions_"
 
+// Module-level map to persist in-flight loading state across React remounts.
+// Keyed by postId (or "_new" for unsaved posts). When the component remounts
+// (e.g. due to HMR, Suspense re-suspend, or tab-switch in dev mode),
+// isLoading can initialize from this map instead of defaulting to false.
+const inflightRequests = new Map<string, AbortController>()
+
 type ComputeTier = "low" | "medium" | "high"
 
 export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId }: CopilotPaneProps) {
@@ -151,7 +157,8 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
     const [input, setInput] = useState("")
     const [isUploading, setIsUploading] = useState(false)
     const [pendingAttachments, setPendingAttachments] = useState<string[]>([])
-    const [isLoading, setIsLoading] = useState(false)
+    const inflightKey = postId || "_new"
+    const [isLoading, setIsLoading] = useState(() => inflightRequests.has(inflightKey))
     const scrollRef = useRef<HTMLDivElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -332,6 +339,10 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
         setMessages(newHistory)
         setIsLoading(true)
 
+        // Track this request in module-level map so isLoading survives remounts
+        const abortController = new AbortController()
+        inflightRequests.set(inflightKey, abortController)
+
         try {
             const response = await fetch("/api/copilot", {
                 method: "POST",
@@ -345,6 +356,7 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                     modelLow,
                     modelMedium,
                 }),
+                signal: abortController.signal,
             })
 
             const data = await response.json()
@@ -379,12 +391,14 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
             setMessages(prev => [...prev, ...resultMessages])
 
         } catch (error: any) {
+            if (error.name === 'AbortError') return // Component unmounted, don't update state
             console.error("Copilot Error:", error)
             setMessages(prev => [
                 ...prev,
                 { role: "result", content: `Error: ${error.message}` }
             ])
         } finally {
+            inflightRequests.delete(inflightKey)
             setIsLoading(false)
         }
     }
