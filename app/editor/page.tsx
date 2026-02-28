@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { BlogPostEditor } from "@/components/editor/blog-post-editor"
 import { createClient } from "@/lib/supabase/client"
-import { togglePostStatus } from "@/app/actions/posts"
+import { togglePostStatus, savePostBackup } from "@/app/actions/posts"
 import { Post } from "@/lib/types"
 
 function EditorInner() {
@@ -49,6 +49,8 @@ function EditorInner() {
 
     const handleSave = async () => {
         if (postId && post) {
+            // Snapshot current state before overwriting
+            await savePostBackup(postId)
             // Update existing post
             await supabase
                 .from("posts")

@@ -218,7 +218,7 @@ export async function getPostHtml(id: string): Promise<{ html_content: string | 
     return data
 }
 
-// ─── SAVE BACKUP (before each Copilot edit) ──────────────
+// ─── SAVE BACKUP (before each save) ──────────────────────
 export async function savePostBackup(postId: string): Promise<void> {
     const supabase = await createClient()
     const { data: post } = await supabase
@@ -227,14 +227,26 @@ export async function savePostBackup(postId: string): Promise<void> {
         .eq("id", postId)
         .single()
 
-    if (!post) return
+    if (!post || !post.html_content) return
 
     // Save a snapshot to post_versions
     await supabase.from("post_versions").insert({
         post_id: postId,
-        html_content: post.html_content || "",
+        html_content: post.html_content,
         prompt: `Backup: ${post.title}`,
     })
+
+    // Keep only the last 5 versions per post
+    const { data: versions } = await supabase
+        .from("post_versions")
+        .select("id")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: false })
+
+    if (versions && versions.length > 5) {
+        const idsToDelete = versions.slice(5).map(v => v.id)
+        await supabase.from("post_versions").delete().in("id", idsToDelete)
+    }
 }
 
 // ─── GET POST BACKUPS ────────────────────────────────────
