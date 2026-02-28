@@ -199,6 +199,14 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     Examples of questions (DO NOT modify HTML): "suggest post titles", "what do you think of this copy", "come up with alternatives", "how can I improve", "give me ideas"
     Examples of edits (DO modify HTML): "change the title to X", "make the button red", "add a new section"
     
+    ### 🛑 CRITICAL OVERRIDE — BLOG POST GENERATION IS ALWAYS AN EDIT:
+    If the user says anything like "make this into a blog post", "build this out", "create a blog post", "write the blog post", "turn this into a post", or references earlier conversational content and asks you to generate it as a blog post — this is ALWAYS an EDIT, even if the conversation so far has been entirely conversational.
+    - You MUST generate a full HTML blog post in "updatedHtml"
+    - Do NOT put the blog post content in the "explanation" field as plain text
+    - If the current HTML is empty or blank, you are building from scratch — return a complete HTML document in "updatedHtml"
+    - The "explanation" field should contain only a SHORT summary of what you built (e.g., "Created a blog post about X with Y sections")
+    - When in doubt about whether to generate HTML or respond conversationally, ALWAYS generate HTML if the user mentions "blog post", "post", "article", or "build it out"
+    
     ### COMPANY CONTEXT:
     ${dynamicContext}
     ${defaultLinksBlock}

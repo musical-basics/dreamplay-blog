@@ -353,6 +353,14 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
 
             if (data.updatedHtml) {
                 onHtmlChange(data.updatedHtml, userMessage)
+            } else if (data.explanation && /<!DOCTYPE html|<html[\s>]/i.test(data.explanation)) {
+                // Fallback: AI accidentally put the HTML in the explanation field
+                const htmlMatch = data.explanation.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i)
+                if (htmlMatch) {
+                    console.warn("[Copilot] Recovered HTML from explanation field (AI put it in wrong field)")
+                    onHtmlChange(htmlMatch[1], userMessage)
+                    data.explanation = "Blog post generated successfully."
+                }
             }
 
             const resultMessages: Message[] = [
