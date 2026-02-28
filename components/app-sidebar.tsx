@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
     Home, FileText, PenTool, MousePointerSquareDashed,
-    ImageIcon, Settings, ExternalLink, Sparkles, BookOpen
+    ImageIcon, Settings, ExternalLink, Sparkles, BookOpen, LayoutTemplate
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -21,6 +21,7 @@ const navSections = [
             { name: "Blog Posts", href: "/admin/posts", icon: FileText },
             { name: "Knowledgebase", href: "/admin/knowledgebase", icon: BookOpen },
             { name: "Assets Library", href: "/admin/assets", icon: ImageIcon },
+            { name: "Theme Analyzer", href: "/admin/theme-analyzer", icon: LayoutTemplate },
         ],
     },
     {

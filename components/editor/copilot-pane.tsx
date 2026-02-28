@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Sparkles, Send, X, Zap, Brain, Bot, Paperclip, Loader2, FileText, History, Plus, LayoutTemplate } from "lucide-react"
+import { Sparkles, Send, X, Zap, Brain, Bot, Paperclip, Loader2, FileText, History, Plus, LayoutTemplate, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -48,6 +48,8 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
     const [overrideModel, setOverrideModel] = useState<string | null>(null)
     const [availableModels, setAvailableModels] = useState<string[]>([])
     const [imageMode, setImageMode] = useState<"library" | "creative">("library")
+    const [themes, setThemes] = useState<any[]>([])
+    const [selectedThemeId, setSelectedThemeId] = useState<string>("none")
 
     const [modelLow, setModelLow] = useState("claude-haiku-4-5-20251001")
     const [modelMedium, setModelMedium] = useState("claude-sonnet-4-6")
@@ -58,6 +60,9 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
         getAnthropicModels().then(models => {
             if (models.length > 0) setAvailableModels(models)
         })
+
+        // Lazy load themes
+        import("@/app/actions/themes").then(m => m.getThemes().then(setThemes))
 
         const low = localStorage.getItem("mb_model_low")
         const med = localStorage.getItem("mb_model_medium")
@@ -357,6 +362,7 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                     modelLow,
                     modelMedium,
                     imageMode,
+                    themeHtml: selectedThemeId !== "none" ? themes.find(t => t.id === selectedThemeId)?.html_template : null,
                 }),
                 signal: abortController.signal,
             })
@@ -600,6 +606,20 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                             ✨ Be Creative
                         </button>
                     </div>
+
+                    {/* Theme Dropdown */}
+                    <Select value={selectedThemeId} onValueChange={setSelectedThemeId}>
+                        <SelectTrigger className="h-8 text-[10px] w-[160px] bg-muted/50 border-border">
+                            <Palette className="w-3 h-3 mr-1.5 text-muted-foreground shrink-0" />
+                            <SelectValue placeholder="Select Theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">No Theme (Default)</SelectItem>
+                            {themes.map(t => (
+                                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <input
                         type="file"

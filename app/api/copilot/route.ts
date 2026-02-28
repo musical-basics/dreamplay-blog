@@ -76,7 +76,7 @@ async function urlToBase64(url: string) {
 
 export async function POST(req: Request) {
     try {
-        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium, imageMode = "library" } = await req.json();
+        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium, imageMode = "library", themeHtml } = await req.json();
 
         // User-designated tier models (fallback to defaults)
         const tierLow = modelLow || "claude-haiku-4-5-20251001";
@@ -256,6 +256,17 @@ ${aiDossier ? `
     ${aiDossier}
 ` : ""}
     ${imageContextBlock}
+${themeHtml ? `
+    ### MANDATORY DESIGN THEME:
+    The user has selected a specific design theme. You MUST use the provided HTML and CSS structure below as the exact foundation for the new blog post.
+    - Keep the CSS <style> block completely intact.
+    - Preserve the DOM structure, typography classes, and colors. Do NOT invent your own styling.
+    - Swap out the placeholder text for the actual blog post content you generate.
+    - Duplicate or arrange the layout components (like cards or quotes) as needed to fit the article length.
+
+    ### PROVIDED THEME SKELETON:
+    ${themeHtml}
+` : ""}
     `;
 
         let rawResponse = "";
