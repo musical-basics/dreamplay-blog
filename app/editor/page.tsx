@@ -19,6 +19,7 @@ function EditorInner() {
     const [title, setTitle] = useState("Untitled Post")
     const [slug, setSlug] = useState("")
     const [excerpt, setExcerpt] = useState("")
+    const [thumbnail, setThumbnail] = useState<string | null>(null)
     const [postStatus, setPostStatus] = useState<'draft' | 'published'>('draft')
     const [loading, setLoading] = useState(!!postId)
 
@@ -40,6 +41,7 @@ function EditorInner() {
                 setTitle(data.title)
                 setSlug(data.slug)
                 setExcerpt(data.excerpt || "")
+                setThumbnail(data.featured_image || null)
                 setPostStatus(data.status || 'draft')
             }
             setLoading(false)
@@ -60,6 +62,7 @@ function EditorInner() {
                     excerpt,
                     html_content: html,
                     variable_values: assets,
+                    featured_image: thumbnail,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", postId)
@@ -74,6 +77,7 @@ function EditorInner() {
                     excerpt,
                     html_content: html,
                     variable_values: assets,
+                    featured_image: thumbnail,
                 })
                 .select("id")
                 .single()
@@ -124,6 +128,8 @@ function EditorInner() {
             postId={postId}
             postStatus={postStatus}
             onRestore={handleRestore}
+            thumbnail={thumbnail}
+            onThumbnailChange={setThumbnail}
         />
     )
 }

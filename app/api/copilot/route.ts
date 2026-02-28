@@ -22,7 +22,7 @@ function extractJson(text: string) {
 
 // Fallback: manually extract updatedHtml and explanation when JSON.parse fails
 // This handles cases where the AI generates valid HTML but with characters that break JSON parsing
-function manualExtractClassic(raw: string): { updatedHtml: string; explanation: string; suggestedAssets?: Record<string, string> } | null {
+function manualExtractClassic(raw: string): { updatedHtml: string; explanation: string; suggestedAssets?: Record<string, string>; suggestedThumbnail?: string } | null {
     try {
         const htmlMatch = raw.match(/"updatedHtml"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"[a-zA-Z_]|\}$)/);
         let html = '';
@@ -50,7 +50,14 @@ function manualExtractClassic(raw: string): { updatedHtml: string; explanation: 
             try { suggestedAssets = JSON.parse(assetsMatch[1]); } catch { }
         }
 
-        return { updatedHtml: html, explanation, suggestedAssets };
+        // NEW: Extract suggested thumbnail if available
+        let suggestedThumbnail: string | undefined;
+        const thumbMatch = raw.match(/"suggestedThumbnail"\s*:\s*"([^"]+)"/);
+        if (thumbMatch) {
+            suggestedThumbnail = thumbMatch[1];
+        }
+
+        return { updatedHtml: html, explanation, suggestedAssets, suggestedThumbnail };
     } catch {
         return null;
     }
@@ -74,7 +81,7 @@ async function urlToBase64(url: string) {
 
 export async function POST(req: Request) {
     try {
-        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium, imageMode = "library", themeHtml } = await req.json();
+        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium, imageMode = "library", themeHtml, hasThumbnail = false } = await req.json();
 
         // User-designated tier models (fallback to defaults)
         const tierLow = modelLow || "claude-haiku-4-5-20251001";
@@ -225,6 +232,14 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     - All text/copy MUST be hardcoded directly in the HTML (not mustache variables).
     - For images, follow the IMAGE HANDLING rule above (rule #4). DO NOT hardcode URLs in the HTML; put them in suggestedAssets.
     - All non-image links (href on <a> tags) MUST use {{mustache_variable}} names (e.g. {{cta_link_url}}, {{hero_link_url}}).
+    ${!hasThumbnail ? `
+    ### THUMBNAIL GENERATION:
+    The blog post does NOT have a thumbnail/featured image yet. You MUST include a "suggestedThumbnail" field in your JSON response with a URL for the blog post thumbnail.
+    - Follow the same image mode rules (library or creative) as for in-body images.
+    - Choose the most visually striking, relevant image that represents the blog post topic.
+    - The thumbnail should be landscape-oriented (roughly 16:9 or 3:2 ratio).
+    - If using a Pollinations placeholder, request dimensions ?width=1200&height=630&nologo=true for optimal social sharing.
+    ` : ''}
     
     ### RESPONSE FORMAT (STRICT JSON ONLY):
     You MUST return ONLY a valid JSON object. Do not include any conversational text before or after the JSON.
@@ -235,6 +250,7 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
         "hero_src": "https://library-or-pollinations-url...",
         "body_img_1": "https://..."
       },
+      ${!hasThumbnail ? '"suggestedThumbnail": "https://image-url-for-blog-card-thumbnail...",' : ''}
       "updatedHtml": "<!DOCTYPE html>\n<html>...</html>"
     }
     

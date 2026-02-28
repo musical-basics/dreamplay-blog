@@ -33,6 +33,8 @@ interface BlogPostEditorProps {
     postId?: string | null
     postStatus?: 'draft' | 'published'
     onRestore?: (backup: { html_content: string; variable_values: Record<string, any> }) => void
+    thumbnail?: string | null
+    onThumbnailChange?: (thumbnail: string | null) => void
 }
 
 export function BlogPostEditor({
@@ -52,7 +54,9 @@ export function BlogPostEditor({
     onPublish,
     postId,
     postStatus,
-    onRestore
+    onRestore,
+    thumbnail,
+    onThumbnailChange
 }: BlogPostEditorProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
@@ -384,7 +388,7 @@ export function BlogPostEditor({
                     )}
                 >
                     <div className="h-full overflow-hidden">
-                        <CopilotPane html={html} onHtmlChange={onHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} />
+                        <CopilotPane html={html} onHtmlChange={onHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} thumbnail={thumbnail} onThumbnailChange={onThumbnailChange} />
                     </div>
                 </Panel>
             </PanelGroup>

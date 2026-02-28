@@ -27,6 +27,8 @@ interface CopilotPaneProps {
     postId?: string | null
     assets?: Record<string, string>
     onAssetsChange?: (assets: Record<string, string>) => void
+    thumbnail?: string | null
+    onThumbnailChange?: (thumbnail: string | null) => void
 }
 
 interface ChatSession {
@@ -46,7 +48,7 @@ const inflightRequests = new Map<string, AbortController>()
 
 type ComputeTier = "low" | "medium" | "high"
 
-export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId, assets, onAssetsChange }: CopilotPaneProps) {
+export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId, assets, onAssetsChange, thumbnail, onThumbnailChange }: CopilotPaneProps) {
     const [overrideModel, setOverrideModel] = useState<string | null>(null)
     const [availableModels, setAvailableModels] = useState<string[]>([])
     const [imageMode, setImageMode] = useState<"library" | "creative">("library")
@@ -365,6 +367,7 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                     modelMedium,
                     imageMode,
                     themeHtml: selectedThemeId !== "none" ? themes.find(t => t.id === selectedThemeId)?.html_template : null,
+                    hasThumbnail: !!thumbnail,
                 }),
                 signal: abortController.signal,
             })
@@ -379,6 +382,10 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                 if (data.suggestedAssets && Object.keys(data.suggestedAssets).length > 0 && onAssetsChange && assets) {
                     onAssetsChange({ ...assets, ...data.suggestedAssets })
                 }
+                // NEW: Auto-set thumbnail if AI suggests one and none exists
+                if (data.suggestedThumbnail && !thumbnail && onThumbnailChange) {
+                    onThumbnailChange(data.suggestedThumbnail)
+                }
             } else if (data.explanation && /<!DOCTYPE html|<html[\s>]/i.test(data.explanation)) {
                 // Fallback: AI accidentally put the HTML in the explanation field
                 const htmlMatch = data.explanation.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i)
@@ -387,6 +394,9 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                     onHtmlChange(htmlMatch[1], userMessage)
                     if (data.suggestedAssets && Object.keys(data.suggestedAssets).length > 0 && onAssetsChange && assets) {
                         onAssetsChange({ ...assets, ...data.suggestedAssets })
+                    }
+                    if (data.suggestedThumbnail && !thumbnail && onThumbnailChange) {
+                        onThumbnailChange(data.suggestedThumbnail)
                     }
                     data.explanation = "Blog post generated successfully."
                 }
