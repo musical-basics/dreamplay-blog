@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getPostStats, getPosts } from '@/app/actions/posts'
+import { DownloadHtmlButton } from '@/components/admin/download-html-button'
 
 export default async function AdminDashboard() {
     const stats = await getPostStats()
@@ -86,6 +87,7 @@ export default async function AdminDashboard() {
                                         <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
                                         <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Category</th>
                                         <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Updated</th>
+                                        <th className="px-4 py-3 w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -121,6 +123,12 @@ export default async function AdminDashboard() {
                                                         year: 'numeric',
                                                     })}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <DownloadHtmlButton
+                                                    htmlContent={post.html_content}
+                                                    filename={`${post.slug || post.id}.html`}
+                                                />
                                             </td>
                                         </tr>
                                     ))}

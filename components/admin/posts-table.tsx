@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import {
     Plus, Search, MoreHorizontal, Pencil, ExternalLink,
-    Trash2, Eye, EyeOff, ChevronDown, ImageIcon
+    Trash2, Eye, EyeOff, ChevronDown, ImageIcon, Download
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -367,6 +367,24 @@ export function PostsTable({ initialPosts }: PostsTableProps) {
                                                             <ExternalLink className="mr-2 h-4 w-4" />
                                                             View
                                                         </Link>
+                                                    </DropdownMenuItem>
+                                                )}
+                                                {post.html_content && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const blob = new Blob([post.html_content!], { type: 'text/html' })
+                                                            const url = URL.createObjectURL(blob)
+                                                            const a = document.createElement('a')
+                                                            a.href = url
+                                                            a.download = `${post.slug || post.id}.html`
+                                                            document.body.appendChild(a)
+                                                            a.click()
+                                                            document.body.removeChild(a)
+                                                            URL.revokeObjectURL(url)
+                                                        }}
+                                                    >
+                                                        <Download className="mr-2 h-4 w-4" />
+                                                        Download HTML
                                                     </DropdownMenuItem>
                                                 )}
                                                 <DropdownMenuItem onClick={() => handleToggleStatus(post.id)}>
