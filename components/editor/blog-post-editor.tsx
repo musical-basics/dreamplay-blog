@@ -384,7 +384,7 @@ export function BlogPostEditor({
                     )}
                 >
                     <div className="h-full overflow-hidden">
-                        <CopilotPane html={html} onHtmlChange={onHtmlChange} postId={postId} />
+                        <CopilotPane html={html} onHtmlChange={onHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} />
                     </div>
                 </Panel>
             </PanelGroup>

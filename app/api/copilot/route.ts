@@ -22,13 +22,9 @@ function extractJson(text: string) {
 
 // Fallback: manually extract updatedHtml and explanation when JSON.parse fails
 // This handles cases where the AI generates valid HTML but with characters that break JSON parsing
-function manualExtractClassic(raw: string): { updatedHtml: string; explanation: string } | null {
+function manualExtractClassic(raw: string): { updatedHtml: string; explanation: string; suggestedAssets?: Record<string, string> } | null {
     try {
-        // Look for the HTML between "updatedHtml" key value markers
-        // The AI typically outputs: "updatedHtml": "<!DOCTYPE html>..."  or  "updatedHtml": "<!doctype html>..."
         const htmlMatch = raw.match(/"updatedHtml"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"[a-zA-Z_]|\}$)/);
-
-        // Also try to grab from <!DOCTYPE to </html> directly
         let html = '';
         if (htmlMatch) {
             html = htmlMatch[1]
@@ -37,22 +33,24 @@ function manualExtractClassic(raw: string): { updatedHtml: string; explanation: 
                 .replace(/\\"/g, '"')
                 .replace(/\\\\/g, '\\');
         } else {
-            // Last resort: find raw HTML in the response
             const docMatch = raw.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i);
-            if (docMatch) {
-                html = docMatch[1];
-            }
+            if (docMatch) html = docMatch[1];
         }
-
         if (!html) return null;
 
-        // Extract explanation
         const expMatch = raw.match(/"explanation"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
         const explanation = expMatch
             ? expMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n')
             : "Changes applied successfully.";
 
-        return { updatedHtml: html, explanation };
+        // NEW: Extract suggested assets if available
+        let suggestedAssets = {};
+        const assetsMatch = raw.match(/"suggestedAssets"\s*:\s*({[^{}]*})/);
+        if (assetsMatch) {
+            try { suggestedAssets = JSON.parse(assetsMatch[1]); } catch { }
+        }
+
+        return { updatedHtml: html, explanation, suggestedAssets };
     } catch {
         return null;
     }
@@ -156,7 +154,7 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
 
         // 3. BUILD DYNAMIC IMAGE INSTRUCTIONS ⚡️
         let imageContextBlock = "";
-        let imageRuleBlock = `4. **IMAGE VARIABLES:** When adding images, the \`src\` attribute MUST use new {{mustache}} variables (e.g. {{golf_fitting_src}}). The variable name MUST end with _src, _bg, _logo, _icon, or _img. Do NOT hardcode image URLs. ALWAYS wrap the image in a clickable link using a corresponding _link_url variable.`;
+        let imageRuleBlock = `4. **IMAGE VARIABLES:** When adding images, the \`src\` attribute MUST use new {{mustache}} variables.`;
 
         if (imageMode === 'library') {
             const { getDescribedAssets } = await import("@/app/actions/assets");
@@ -164,12 +162,17 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             if (library && library.length > 0) {
                 const libraryText = library.map((img: any) => `- URL: ${img.public_url}\n  Description: ${img.description}`).join("\n\n");
                 imageContextBlock = `\n### ASSET LIBRARY:\nYou have access to the following pre-uploaded images.\n${libraryText}\n`;
-                imageRuleBlock = `4. **IMAGE HANDLING (LIBRARY MODE):** \n   - Read the descriptions in the ASSET LIBRARY below. \n   - If a library image fits the context, HARDCODE its exact URL directly into the \`src\` attribute (e.g., \`<img src="https://..." />\`).\n   - If NO image in the library fits (e.g., you are inventing a novel concept or analogy), use a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`.\n   - DO NOT use {{mustache}} variables for the \`src\` attribute! Hardcode the actual URLs (from the library or pollinations.ai) so they render immediately.\n   - ALWAYS wrap ANY image in a clickable link using a corresponding {{mustache_link_url}} variable so the user can link it somewhere.`;
+                imageRuleBlock = `4. **IMAGE HANDLING (LIBRARY MODE):** 
+   - ALWAYS use {{mustache}} variables for the \`src\` attribute (e.g., \`<img src="{{hero_src}}" />\`). DO NOT hardcode URLs in the HTML.
+   - INSTEAD, map the URLs to your variables in the \`suggestedAssets\` JSON object.
+   - Read the descriptions in the ASSET LIBRARY below. If an image fits the context, map its exact URL to your mustache variable in \`suggestedAssets\`.
+   - If NO image in the library fits, map a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`.
+   - ALWAYS wrap ANY image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
             } else {
-                imageRuleBlock = `4. **IMAGE HANDLING:** HARDCODE a dynamic AI placeholder directly into the \`src\` attribute: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. DO NOT use {{mustache}} variables for the \`src\` attribute. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
+                imageRuleBlock = `4. **IMAGE HANDLING:** ALWAYS use {{mustache}} variables for the \`src\` attribute. DO NOT hardcode URLs in the HTML. In the \`suggestedAssets\` JSON object, map these variables to a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
             }
         } else if (imageMode === 'creative') {
-            imageRuleBlock = `4. **IMAGE HANDLING (CREATIVE MODE):** Do NOT use existing images. For ALL images, you must generate a highly creative AI image placeholder using this exact format directly in the \`src\` attribute: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. Example: \`<img src="https://image.pollinations.ai/prompt/Professional%20golf%20club%20fitting?width=800&height=400&nologo=true" />\`. DO NOT use {{mustache}} variables for the \`src\` attribute. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
+            imageRuleBlock = `4. **IMAGE HANDLING (CREATIVE MODE):** Do NOT use existing images. ALWAYS use {{mustache}} variables for the \`src\` attribute. DO NOT hardcode URLs in the HTML. In the \`suggestedAssets\` JSON object, map these variables to a highly creative AI image placeholder using this exact format: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
         }
 
         // 4. Process History: Convert ALL image URLs to Base64
@@ -219,16 +222,19 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     
     ### TEMPLATE CREATION DEFAULTS:
     When asked to create a NEW blog post from scratch or from a reference image:
-    - All text/copy MUST be hardcoded directly in the HTML (not mustache variables). Write the actual words into the template.
-    - For images, follow the IMAGE HANDLING rule above (rule #4).
+    - All text/copy MUST be hardcoded directly in the HTML (not mustache variables).
+    - For images, follow the IMAGE HANDLING rule above (rule #4). DO NOT hardcode URLs in the HTML; put them in suggestedAssets.
     - All non-image links (href on <a> tags) MUST use {{mustache_variable}} names (e.g. {{cta_link_url}}, {{hero_link_url}}).
-    - This means the user only needs to set link destinations, while images and text are baked in.
     
     ### RESPONSE FORMAT (STRICT JSON ONLY):
     You MUST return ONLY a valid JSON object. Do not include any conversational text before or after the JSON.
     {
       "_thoughts": "Think step-by-step about what needs to be changed. Explain your math or logic here before writing the code.",
       "explanation": "A brief, friendly summary of changes for the user interface",
+      "suggestedAssets": {
+        "hero_src": "https://library-or-pollinations-url...",
+        "body_img_1": "https://..."
+      },
       "updatedHtml": "<!DOCTYPE html>\n<html>...</html>"
     }
     

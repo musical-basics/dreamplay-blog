@@ -25,6 +25,8 @@ interface CopilotPaneProps {
     audienceContext?: "dreamplay" | "musicalbasics" | "both"
     aiDossier?: string
     postId?: string | null
+    assets?: Record<string, string>
+    onAssetsChange?: (assets: Record<string, string>) => void
 }
 
 interface ChatSession {
@@ -44,7 +46,7 @@ const inflightRequests = new Map<string, AbortController>()
 
 type ComputeTier = "low" | "medium" | "high"
 
-export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId }: CopilotPaneProps) {
+export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId, assets, onAssetsChange }: CopilotPaneProps) {
     const [overrideModel, setOverrideModel] = useState<string | null>(null)
     const [availableModels, setAvailableModels] = useState<string[]>([])
     const [imageMode, setImageMode] = useState<"library" | "creative">("library")
@@ -373,12 +375,19 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
 
             if (data.updatedHtml) {
                 onHtmlChange(data.updatedHtml, userMessage)
+                // NEW: Populate Asset Loader magically!
+                if (data.suggestedAssets && Object.keys(data.suggestedAssets).length > 0 && onAssetsChange && assets) {
+                    onAssetsChange({ ...assets, ...data.suggestedAssets })
+                }
             } else if (data.explanation && /<!DOCTYPE html|<html[\s>]/i.test(data.explanation)) {
                 // Fallback: AI accidentally put the HTML in the explanation field
                 const htmlMatch = data.explanation.match(/(<!DOCTYPE html[\s\S]*?<\/html>)/i)
                 if (htmlMatch) {
                     console.warn("[Copilot] Recovered HTML from explanation field (AI put it in wrong field)")
                     onHtmlChange(htmlMatch[1], userMessage)
+                    if (data.suggestedAssets && Object.keys(data.suggestedAssets).length > 0 && onAssetsChange && assets) {
+                        onAssetsChange({ ...assets, ...data.suggestedAssets })
+                    }
                     data.explanation = "Blog post generated successfully."
                 }
             }
