@@ -58,7 +58,7 @@ RULES:
 
 export async function POST(req: Request) {
     try {
-        const { currentBlocks, messages, model, audienceContext = "dreamplay", aiDossier = "" } = await req.json();
+        const { currentBlocks, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "" } = await req.json();
 
         // --- SMART ROUTER LOGIC ---
         let actualModel = model;
@@ -112,6 +112,23 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
         const payload = await getAllContextForAudience(audienceContext);
         const { contextBlock: dynamicContext, linksBlock: defaultLinksBlock } = await formatContextForPrompt(payload, audienceContext);
 
+        // FETCH KNOWLEDGEBASE (server-side) ⚡️
+        let aiDossier = clientDossier;
+        if (!aiDossier) {
+            try {
+                const { data: kbDocs } = await supabase
+                    .from("research_knowledgebase")
+                    .select("*")
+                    .eq("is_active", true);
+                if (kbDocs && kbDocs.length > 0) {
+                    aiDossier = kbDocs.map((doc: any) => `--- SOURCE: ${doc.title} ${doc.author ? `(by ${doc.author})` : ''} ---\n${doc.content}`).join("\n\n");
+                    console.log(`[Knowledgebase DnD] Injected ${kbDocs.length} active research doc(s) into prompt`);
+                }
+            } catch (e) {
+                console.error("[Knowledgebase DnD] Failed to fetch:", e);
+            }
+        }
+
         // Process images in messages
         const processedMessages = await Promise.all(messages.map(async (msg: any, index: number) => {
             const isRecent = index >= messages.length - 3;
@@ -153,6 +170,12 @@ ${aiDossier ? `
 ### AUDIENCE INTELLIGENCE:
 ${aiDossier}
 ` : ""}
+
+### 🛑 STRICT FACT & QUOTE RULES:
+1. NEVER invent, fabricate, or hallucinate quotes, testimonials, or people.
+2. If you quote someone, use a case study, or tell a story, it MUST be extracted verbatim from the provided "AUDIENCE INTELLIGENCE" section. DO NOT invent fake personas.
+3. Do NOT make up statistics. Use ONLY the exact data provided. Do not conflate universities or researchers.
+4. If the AUDIENCE INTELLIGENCE section is empty or not provided, do NOT fabricate any quotes or case studies. Write general copy instead.
 `;
 
         let rawResponse = "";

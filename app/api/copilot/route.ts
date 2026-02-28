@@ -76,7 +76,7 @@ async function urlToBase64(url: string) {
 
 export async function POST(req: Request) {
     try {
-        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier = "", modelLow, modelMedium } = await req.json();
+        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium } = await req.json();
 
         // User-designated tier models (fallback to defaults)
         const tierLow = modelLow || "claude-haiku-4-5-20251001";
@@ -137,6 +137,23 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
         const payload = await getAllContextForAudience(audienceContext);
         const { contextBlock: dynamicContext, linksBlock: defaultLinksBlock } = await formatContextForPrompt(payload, audienceContext);
 
+        // 2. FETCH KNOWLEDGEBASE (server-side) ⚡️
+        let aiDossier = clientDossier;
+        if (!aiDossier) {
+            try {
+                const { data: kbDocs } = await supabase
+                    .from("research_knowledgebase")
+                    .select("*")
+                    .eq("is_active", true);
+                if (kbDocs && kbDocs.length > 0) {
+                    aiDossier = kbDocs.map((doc: any) => `--- SOURCE: ${doc.title} ${doc.author ? `(by ${doc.author})` : ''} ---\n${doc.content}`).join("\n\n");
+                    console.log(`[Knowledgebase] Injected ${kbDocs.length} active research doc(s) into prompt`);
+                }
+            } catch (e) {
+                console.error("[Knowledgebase] Failed to fetch:", e);
+            }
+        }
+
         // 2. Process History: Convert ALL image URLs to Base64
         // We do this server-side so we don't hit the 4MB payload limit from the client.
         // We only keep the last 3 messages' images to save tokens/money, but we keep ALL text.
@@ -175,6 +192,12 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     5. **NO EM-DASHES:** Never use em-dashes (—) in any copy or text you write. Use commas, periods, or semicolons instead.
     6. **READABLE COPY FORMATTING:** When writing or editing paragraph text/copy, add sparse inline formatting to improve scannability. Use \`<strong>\` to bold 1-2 key value propositions or outcomes per paragraph (the phrases you want the reader to remember). Use \`<u>\` to underline one supporting detail or benefit phrase per paragraph. Don't overdo it: most sentences should remain unformatted. The goal is to let a skimming reader grasp the main points from the bold text alone.
     7. **TYPOGRAPHY:** Use modern web fonts (e.g. system-ui, -apple-system, or Google Fonts). Use good line-height (1.6-1.8 for body text). Use proper heading hierarchy.
+    
+    ### 🛑 STRICT FACT & QUOTE RULES:
+    1. NEVER invent, fabricate, or hallucinate quotes, testimonials, or people.
+    2. If you quote someone, use a case study, or tell a story, it MUST be extracted verbatim from the provided "AUDIENCE INTELLIGENCE" section (e.g., use the real stories of Christopher Donison, Eliana Yi, Josef Hofmann, etc.). DO NOT invent fake personas like "Sarah M." or "Hannah Tsai".
+    3. Do NOT make up statistics. Use ONLY the exact data provided (e.g., 87.1% of adult females, University of North Texas). Do not conflate universities or researchers.
+    4. If the AUDIENCE INTELLIGENCE section is empty or not provided, do NOT fabricate any quotes or case studies. Write general copy instead.
     
     ### TEMPLATE CREATION DEFAULTS:
     When asked to create a NEW blog post from scratch or from a reference image:
