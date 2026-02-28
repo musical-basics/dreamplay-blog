@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Package } from "lucide-react";
+import { subscribeToNewsletter } from "@/app/actions/email-actions";
 
 export function NewsletterForm() {
     const [email, setEmail] = useState("");
@@ -13,18 +14,14 @@ export function NewsletterForm() {
         setStatus("loading");
 
         try {
-            const res = await fetch("https://email.dreamplaypianos.com/api/webhooks/subscribe", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email,
-                    tags: ["Blog Newsletter", "Free Shipping Lead"],
-                    temp_session_id: typeof window !== "undefined" ? localStorage.getItem("dp_temp_session") || undefined : undefined
-                })
+            const res = await subscribeToNewsletter({
+                email,
+                tags: ["Blog Newsletter", "Free Shipping Lead"],
+                temp_session_id: typeof window !== "undefined" ? localStorage.getItem("dp_temp_session") || undefined : undefined
             });
 
-            if (!res.ok && res.status !== 400 && res.status !== 422) {
-                throw new Error("Failed to subscribe");
+            if (!res.success) {
+                throw new Error(res.error || "Failed to subscribe");
             }
 
             setStatus("success");
