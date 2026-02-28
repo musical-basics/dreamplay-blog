@@ -76,7 +76,7 @@ async function urlToBase64(url: string) {
 
 export async function POST(req: Request) {
     try {
-        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium } = await req.json();
+        const { currentHtml, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", modelLow, modelMedium, imageMode = "library" } = await req.json();
 
         // User-designated tier models (fallback to defaults)
         const tierLow = modelLow || "claude-haiku-4-5-20251001";
@@ -154,7 +154,25 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             }
         }
 
-        // 2. Process History: Convert ALL image URLs to Base64
+        // 3. BUILD DYNAMIC IMAGE INSTRUCTIONS ⚡️
+        let imageContextBlock = "";
+        let imageRuleBlock = `4. **IMAGE VARIABLES:** When adding images, the \`src\` attribute MUST use new {{mustache}} variables (e.g. {{golf_fitting_src}}). The variable name MUST end with _src, _bg, _logo, _icon, or _img. Do NOT hardcode image URLs. ALWAYS wrap the image in a clickable link using a corresponding _link_url variable.`;
+
+        if (imageMode === 'library') {
+            const { getDescribedAssets } = await import("@/app/actions/assets");
+            const library = await getDescribedAssets();
+            if (library && library.length > 0) {
+                const libraryText = library.map((img: any) => `- URL: ${img.public_url}\n  Description: ${img.description}`).join("\n\n");
+                imageContextBlock = `\n### ASSET LIBRARY:\nYou have access to the following pre-uploaded images.\n${libraryText}\n`;
+                imageRuleBlock = `4. **IMAGE HANDLING (LIBRARY MODE):** \n   - Read the descriptions in the ASSET LIBRARY below. \n   - If a library image fits the context, HARDCODE its exact URL directly into the \`src\` attribute (e.g., \`<img src="https://..." />\`).\n   - If NO image in the library fits (e.g., you are inventing a novel concept or analogy), use a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`.\n   - DO NOT use {{mustache}} variables for the \`src\` attribute! Hardcode the actual URLs (from the library or pollinations.ai) so they render immediately.\n   - ALWAYS wrap ANY image in a clickable link using a corresponding {{mustache_link_url}} variable so the user can link it somewhere.`;
+            } else {
+                imageRuleBlock = `4. **IMAGE HANDLING:** HARDCODE a dynamic AI placeholder directly into the \`src\` attribute: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. DO NOT use {{mustache}} variables for the \`src\` attribute. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
+            }
+        } else if (imageMode === 'creative') {
+            imageRuleBlock = `4. **IMAGE HANDLING (CREATIVE MODE):** Do NOT use existing images. For ALL images, you must generate a highly creative AI image placeholder using this exact format directly in the \`src\` attribute: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. Example: \`<img src="https://image.pollinations.ai/prompt/Professional%20golf%20club%20fitting?width=800&height=400&nologo=true" />\`. DO NOT use {{mustache}} variables for the \`src\` attribute. ALWAYS wrap the image in a clickable link using a corresponding {{mustache_link_url}} variable.`;
+        }
+
+        // 4. Process History: Convert ALL image URLs to Base64
         // We do this server-side so we don't hit the 4MB payload limit from the client.
         // We only keep the last 3 messages' images to save tokens/money, but we keep ALL text.
         const processedMessages = await Promise.all(messages.map(async (msg: any, index: number) => {
@@ -188,7 +206,7 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     1. **LAYOUT:** Use modern HTML5 (<article>, <section>, <div>, <header>, <footer>). You can use semantic tags and CSS Flexbox/Grid. NO TABLE LAYOUTS!
     2. **RESPONSIVENESS:** Ensure sections stack gracefully on mobile devices using standard CSS classes or inline styles. Use max-width containers with auto margins.
     3. **VARIABLES:** Preserve {{mustache_vars}}.
-    4. **IMAGE VARIABLES:** When adding images with {{mustache}} variables, the variable name MUST end with one of these suffixes: _src, _bg, _logo, _icon, _img — or contain the word "image" or "url". For example: {{hero_src}}, {{product_bg}}, {{banner_img}}. This ensures the Asset Loader recognizes them as images and shows the upload button. Additionally, ALWAYS wrap the image in a clickable link using a corresponding _link_url variable. For example: <a href="{{hero_link_url}}"><img src="{{hero_src}}" /></a>. This lets the user set the link destination in the Asset Loader.
+    ${imageRuleBlock}
     5. **NO EM-DASHES:** Never use em-dashes (—) in any copy or text you write. Use commas, periods, or semicolons instead.
     6. **READABLE COPY FORMATTING:** When writing or editing paragraph text/copy, add sparse inline formatting to improve scannability. Use \`<strong>\` to bold 1-2 key value propositions or outcomes per paragraph (the phrases you want the reader to remember). Use \`<u>\` to underline one supporting detail or benefit phrase per paragraph. Don't overdo it: most sentences should remain unformatted. The goal is to let a skimming reader grasp the main points from the bold text alone.
     7. **TYPOGRAPHY:** Use modern web fonts (e.g. system-ui, -apple-system, or Google Fonts). Use good line-height (1.6-1.8 for body text). Use proper heading hierarchy.
@@ -202,9 +220,9 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
     ### TEMPLATE CREATION DEFAULTS:
     When asked to create a NEW blog post from scratch or from a reference image:
     - All text/copy MUST be hardcoded directly in the HTML (not mustache variables). Write the actual words into the template.
-    - All image sources (src) MUST use {{mustache_variable}} names (e.g. {{hero_src}}, {{product_img}}).
-    - All links (href on <a> tags) MUST use {{mustache_variable}} names (e.g. {{cta_link_url}}, {{hero_link_url}}).
-    - This means the user only needs to load assets (images + links) via the Asset Loader, while the text is baked into the HTML.
+    - For images, follow the IMAGE HANDLING rule above (rule #4).
+    - All non-image links (href on <a> tags) MUST use {{mustache_variable}} names (e.g. {{cta_link_url}}, {{hero_link_url}}).
+    - This means the user only needs to set link destinations, while images and text are baked in.
     
     ### RESPONSE FORMAT (STRICT JSON ONLY):
     You MUST return ONLY a valid JSON object. Do not include any conversational text before or after the JSON.
@@ -237,6 +255,7 @@ ${aiDossier ? `
     ### AUDIENCE INTELLIGENCE:
     ${aiDossier}
 ` : ""}
+    ${imageContextBlock}
     `;
 
         let rawResponse = "";

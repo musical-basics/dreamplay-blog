@@ -47,6 +47,7 @@ type ComputeTier = "low" | "medium" | "high"
 export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay", aiDossier = "", postId }: CopilotPaneProps) {
     const [overrideModel, setOverrideModel] = useState<string | null>(null)
     const [availableModels, setAvailableModels] = useState<string[]>([])
+    const [imageMode, setImageMode] = useState<"library" | "creative">("library")
 
     const [modelLow, setModelLow] = useState("claude-haiku-4-5-20251001")
     const [modelMedium, setModelMedium] = useState("claude-sonnet-4-6")
@@ -355,6 +356,7 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                     aiDossier,
                     modelLow,
                     modelMedium,
+                    imageMode,
                 }),
                 signal: abortController.signal,
             })
@@ -579,6 +581,26 @@ export function CopilotPane({ html, onHtmlChange, audienceContext = "dreamplay",
                 )}
 
                 <div className="space-y-2">
+                    {/* Image Mode Toggle */}
+                    <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg w-fit border border-border">
+                        <button
+                            type="button"
+                            onClick={() => setImageMode('library')}
+                            className={cn("text-[10px] font-medium px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5", imageMode === 'library' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+                            title="Attempt to use images from your Asset Library first"
+                        >
+                            📚 Use Library
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setImageMode('creative')}
+                            className={cn("text-[10px] font-medium px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5", imageMode === 'creative' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}
+                            title="Generate AI images on the fly"
+                        >
+                            ✨ Be Creative
+                        </button>
+                    </div>
+
                     <input
                         type="file"
                         multiple

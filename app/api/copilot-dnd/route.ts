@@ -56,9 +56,16 @@ RULES:
 - NO EM-DASHES in any text
 `;
 
+function buildBlockSchemaWithImageRules(imageRuleBlock: string) {
+    return BLOCK_SCHEMA.replace(
+        '- All image src values MUST be mustache variables like {{hero_src}}, {{product_img}}, etc.',
+        imageRuleBlock
+    );
+}
+
 export async function POST(req: Request) {
     try {
-        const { currentBlocks, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "" } = await req.json();
+        const { currentBlocks, messages, model, audienceContext = "dreamplay", aiDossier: clientDossier = "", imageMode = "library" } = await req.json();
 
         // --- SMART ROUTER LOGIC ---
         let actualModel = model;
@@ -129,6 +136,24 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             }
         }
 
+        // BUILD DYNAMIC IMAGE INSTRUCTIONS ⚡️
+        let imageContextBlock = "";
+        let imageRuleBlock = `- All image src values MUST be mustache variables like {{hero_src}}, {{product_img}}, etc.`;
+
+        if (imageMode === 'library') {
+            const { getDescribedAssets } = await import("@/app/actions/assets");
+            const library = await getDescribedAssets();
+            if (library && library.length > 0) {
+                const libraryText = library.map((img: any) => `- URL: ${img.public_url}\n  Description: ${img.description}`).join("\n\n");
+                imageContextBlock = `\n### ASSET LIBRARY:\nYou have access to the following pre-uploaded images.\n${libraryText}\n`;
+                imageRuleBlock = `- If a library image (see ASSET LIBRARY section) fits the context, HARDCODE its exact URL directly into the \`src\` prop.\n- If NO library image fits, use a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`.\n- DO NOT use {{mustache}} variables for image src! Hardcode URLs so they render immediately.`;
+            } else {
+                imageRuleBlock = `- HARDCODE a dynamic AI placeholder directly into the \`src\` prop: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. DO NOT use {{mustache}} variables for image src.`;
+            }
+        } else if (imageMode === 'creative') {
+            imageRuleBlock = `- For ALL images, generate a creative AI placeholder in the \`src\` prop: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`. DO NOT use {{mustache}} variables for image src.`;
+        }
+
         // Process images in messages
         const processedMessages = await Promise.all(messages.map(async (msg: any, index: number) => {
             const isRecent = index >= messages.length - 3;
@@ -140,11 +165,13 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             return { role: msg.role, content: msg.content, images: processedImages };
         }));
 
+        const dynamicBlockSchema = buildBlockSchemaWithImageRules(imageRuleBlock);
+
         const systemInstruction = `
 You are an expert Email Template Designer that builds emails using a BLOCK-BASED system.
 The user will describe what they want, and you return a structured array of blocks.
 
-${BLOCK_SCHEMA}
+${dynamicBlockSchema}
 
 ### RESPONSE FORMAT (STRICT JSON ONLY):
 You MUST return ONLY a valid JSON object. Do not include any conversational text before or after the JSON.
@@ -170,6 +197,7 @@ ${aiDossier ? `
 ### AUDIENCE INTELLIGENCE:
 ${aiDossier}
 ` : ""}
+${imageContextBlock}
 
 ### 🛑 STRICT FACT & QUOTE RULES:
 1. NEVER invent, fabricate, or hallucinate quotes, testimonials, or people.

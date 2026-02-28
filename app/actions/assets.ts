@@ -217,3 +217,49 @@ export async function deleteFolder(name: string) {
     if (subError) return { success: false, error: subError.message }
     return { success: true }
 }
+
+// ─── AI ASSET LIBRARY ────────────────────────────────────
+
+export async function updateAssetDescription(assetId: string, description: string) {
+    const supabase = getSupabase()
+    const { error } = await supabase
+        .from("media_assets")
+        .update({ description })
+        .eq("id", assetId)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+}
+
+// Fetches ALL assets for the admin page to let you tag them
+export async function getAllLibraryAssets() {
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+        .from("media_assets")
+        .select("*")
+        .eq("is_deleted", false)
+        .neq("filename", ".folder")
+        .order("created_at", { ascending: false })
+
+    if (error) return []
+    return data || []
+}
+
+// Fetches ONLY described assets to feed to the AI Prompt (saves tokens)
+export async function getDescribedAssets() {
+    const supabase = getSupabase()
+    try {
+        const { data, error } = await supabase
+            .from("media_assets")
+            .select("public_url, description, filename")
+            .eq("is_deleted", false)
+            .neq("filename", ".folder")
+            .not("description", "is", null)
+            .neq("description", "")
+            .limit(50)
+
+        return data || []
+    } catch {
+        return [] // Fallback if column doesn't exist yet
+    }
+}
