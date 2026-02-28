@@ -26,3 +26,10 @@ export async function deleteTheme(id: string) {
     const supabase = getSupabase()
     await supabase.from("blog_themes").delete().eq("id", id)
 }
+
+export async function updateTheme(id: string, updates: { name?: string; html_template?: string }) {
+    const supabase = getSupabase()
+    const { error } = await supabase.from("blog_themes").update(updates).eq("id", id)
+    if (error) throw new Error(error.message)
+    return { success: true }
+}
