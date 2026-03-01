@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset, deleteAsset } from "@/app/actions/assets"
-import { getAllTags, getAllAssetTagLinks, setAssetTags } from "@/app/actions/tags"
+import { getAllTags, getAllAssetTagLinks, setAssetTags, createTag } from "@/app/actions/tags"
 import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -275,31 +275,61 @@ export default function AssetsLibraryPage() {
                                         <Plus className="w-3.5 h-3.5" />
                                     </button>
                                     {openTagPicker === asset.id && (
-                                        <div className="absolute bottom-full left-0 mb-1 z-20 bg-popover border border-border rounded-lg shadow-xl p-2 min-w-[180px] max-h-48 overflow-y-auto">
-                                            {allTags.length === 0 ? (
-                                                <p className="text-xs text-muted-foreground px-2 py-1">No tags yet. Create tags first.</p>
-                                            ) : (
-                                                allTags.map(tag => {
-                                                    const isActive = (assetTagMap[asset.id] || []).includes(tag.id)
-                                                    return (
-                                                        <button
-                                                            key={tag.id}
-                                                            onClick={() => handleToggleTag(asset.id, tag.id)}
-                                                            className={cn(
-                                                                "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
-                                                                isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                                                            )}
-                                                        >
-                                                            <div
-                                                                className="w-3 h-3 rounded-full shrink-0"
-                                                                style={{ backgroundColor: tag.color }}
-                                                            />
-                                                            <span className="flex-1">{tag.name}</span>
-                                                            {isActive && <Check className="w-3 h-3 text-primary" />}
-                                                        </button>
-                                                    )
-                                                })
-                                            )}
+                                        <div className="absolute bottom-full left-0 mb-1 z-20 bg-popover border border-border rounded-lg shadow-xl p-2 min-w-[200px] max-h-56 overflow-y-auto">
+                                            {allTags.map(tag => {
+                                                const isActive = (assetTagMap[asset.id] || []).includes(tag.id)
+                                                return (
+                                                    <button
+                                                        key={tag.id}
+                                                        onClick={() => handleToggleTag(asset.id, tag.id)}
+                                                        className={cn(
+                                                            "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                                            isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                        )}
+                                                    >
+                                                        <div
+                                                            className="w-3 h-3 rounded-full shrink-0"
+                                                            style={{ backgroundColor: tag.color }}
+                                                        />
+                                                        <span className="flex-1">{tag.name}</span>
+                                                        {isActive && <Check className="w-3 h-3 text-primary" />}
+                                                    </button>
+                                                )
+                                            })}
+                                            {allTags.length > 0 && <div className="border-t border-border my-1.5" />}
+                                            <form
+                                                onSubmit={async (e) => {
+                                                    e.preventDefault()
+                                                    const input = (e.target as HTMLFormElement).elements.namedItem("newTag") as HTMLInputElement
+                                                    const name = input.value.trim()
+                                                    if (!name) return
+                                                    const colors = ["#ef4444", "#f97316", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#eab308"]
+                                                    const color = colors[Math.floor(Math.random() * colors.length)]
+                                                    const res = await createTag(name, color)
+                                                    if (res.success && res.tag) {
+                                                        const newTag = res.tag as TagItem
+                                                        setAllTags(prev => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)))
+                                                        // Auto-assign to this asset
+                                                        const current = assetTagMap[asset.id] || []
+                                                        const updated = [...current, newTag.id]
+                                                        setAssetTagMap(prev => ({ ...prev, [asset.id]: updated }))
+                                                        await setAssetTags(asset.id, updated)
+                                                    }
+                                                    input.value = ""
+                                                }}
+                                                className="flex items-center gap-1.5 px-1"
+                                            >
+                                                <input
+                                                    name="newTag"
+                                                    type="text"
+                                                    placeholder="Create new tag..."
+                                                    className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none py-1.5 px-1"
+                                                    autoComplete="off"
+                                                />
+                                                <button type="submit" className="p-1 rounded text-muted-foreground hover:text-primary transition-colors">
+                                                    <Plus className="w-3 h-3" />
+                                                </button>
+                                            </form>
                                         </div>
                                     )}
                                 </div>
