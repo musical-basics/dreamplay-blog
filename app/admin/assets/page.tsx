@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset, deleteAsset } from "@/app/actions/assets"
 import { getAllTags, getAllAssetTagLinks, setAssetTags, createTag } from "@/app/actions/tags"
-import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus } from "lucide-react"
+import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus, Filter, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -26,6 +26,12 @@ export default function AssetsLibraryPage() {
     const [allTags, setAllTags] = useState<TagItem[]>([])
     const [assetTagMap, setAssetTagMap] = useState<Record<string, string[]>>({})
     const [openTagPicker, setOpenTagPicker] = useState<string | null>(null)
+    const [includeTags, setIncludeTags] = useState<string[]>([])
+    const [excludeTags, setExcludeTags] = useState<string[]>([])
+    const [showIncludeDropdown, setShowIncludeDropdown] = useState(false)
+    const [showExcludeDropdown, setShowExcludeDropdown] = useState(false)
+    const includeRef = useRef<HTMLDivElement>(null)
+    const excludeRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -112,13 +118,39 @@ export default function AssetsLibraryPage() {
         }
     }
 
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (includeRef.current && !includeRef.current.contains(e.target as Node)) setShowIncludeDropdown(false)
+            if (excludeRef.current && !excludeRef.current.contains(e.target as Node)) setShowExcludeDropdown(false)
+        }
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [])
+
     const filteredAssets = assets.filter(a => {
         const matchesSearch = a.filename.toLowerCase().includes(search.toLowerCase()) ||
             (a.description || "").toLowerCase().includes(search.toLowerCase())
         const matchesFilter = filter === "all" ||
             (filter === "starred" && a.is_starred) ||
             (filter === "unstarred" && !a.is_starred)
-        return matchesSearch && matchesFilter
+        if (!matchesSearch || !matchesFilter) return false
+
+        const assetTags = assetTagMap[a.id] || []
+
+        // Include filter: asset must have at least one of the included tags
+        if (includeTags.length > 0) {
+            const hasIncluded = assetTags.some(t => includeTags.includes(t))
+            if (!hasIncluded) return false
+        }
+
+        // Exclude filter: asset must NOT have any of the excluded tags
+        if (excludeTags.length > 0) {
+            const hasExcluded = assetTags.some(t => excludeTags.includes(t))
+            if (hasExcluded) return false
+        }
+
+        return true
     })
 
     const starredCount = assets.filter(a => a.is_starred).length
@@ -146,7 +178,7 @@ export default function AssetsLibraryPage() {
                     />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                     {/* Upload button */}
                     <input
                         ref={fileInputRef}
@@ -173,7 +205,126 @@ export default function AssetsLibraryPage() {
                         {uploading ? "Uploading..." : "Upload Image"}
                     </button>
 
-                    {/* Filter tabs */}
+                    {/* Tag Filters */}
+                    <div className="flex items-center gap-2">
+                        {/* Include Tags */}
+                        <div ref={includeRef} className="relative">
+                            <button
+                                onClick={() => { setShowIncludeDropdown(v => !v); setShowExcludeDropdown(false) }}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                                    includeTags.length > 0
+                                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25"
+                                        : "bg-muted/50 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                                )}
+                            >
+                                <Filter className="w-3.5 h-3.5" />
+                                Include{includeTags.length > 0 && ` (${includeTags.length})`}
+                            </button>
+                            {showIncludeDropdown && (
+                                <div className="absolute top-full left-0 mt-1 z-30 bg-popover border border-border rounded-lg shadow-xl p-1.5 min-w-[200px] max-h-64 overflow-y-auto">
+                                    {allTags.length === 0 && (
+                                        <p className="text-xs text-muted-foreground px-2 py-3 text-center">No tags yet</p>
+                                    )}
+                                    {allTags.map(tag => {
+                                        const isActive = includeTags.includes(tag.id)
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                onClick={() => {
+                                                    setIncludeTags(prev =>
+                                                        isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                                    )
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                                    isActive ? "bg-emerald-500/15 text-emerald-300" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                )}
+                                            >
+                                                <div
+                                                    className="w-3 h-3 rounded-full shrink-0"
+                                                    style={{ backgroundColor: tag.color }}
+                                                />
+                                                <span className="flex-1">{tag.name}</span>
+                                                {isActive && <Check className="w-3 h-3" />}
+                                            </button>
+                                        )
+                                    })}
+                                    {includeTags.length > 0 && (
+                                        <>
+                                            <div className="border-t border-border my-1" />
+                                            <button
+                                                onClick={() => setIncludeTags([])}
+                                                className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                                            >
+                                                <X className="w-3 h-3" /> Clear all
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Exclude Tags */}
+                        <div ref={excludeRef} className="relative">
+                            <button
+                                onClick={() => { setShowExcludeDropdown(v => !v); setShowIncludeDropdown(false) }}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border",
+                                    excludeTags.length > 0
+                                        ? "bg-red-500/15 border-red-500/40 text-red-400 hover:bg-red-500/25"
+                                        : "bg-muted/50 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                                )}
+                            >
+                                <Filter className="w-3.5 h-3.5" />
+                                Exclude{excludeTags.length > 0 && ` (${excludeTags.length})`}
+                            </button>
+                            {showExcludeDropdown && (
+                                <div className="absolute top-full left-0 mt-1 z-30 bg-popover border border-border rounded-lg shadow-xl p-1.5 min-w-[200px] max-h-64 overflow-y-auto">
+                                    {allTags.length === 0 && (
+                                        <p className="text-xs text-muted-foreground px-2 py-3 text-center">No tags yet</p>
+                                    )}
+                                    {allTags.map(tag => {
+                                        const isActive = excludeTags.includes(tag.id)
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                onClick={() => {
+                                                    setExcludeTags(prev =>
+                                                        isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                                    )
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                                    isActive ? "bg-red-500/15 text-red-300" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                )}
+                                            >
+                                                <div
+                                                    className="w-3 h-3 rounded-full shrink-0"
+                                                    style={{ backgroundColor: tag.color }}
+                                                />
+                                                <span className="flex-1">{tag.name}</span>
+                                                {isActive && <Check className="w-3 h-3" />}
+                                            </button>
+                                        )
+                                    })}
+                                    {excludeTags.length > 0 && (
+                                        <>
+                                            <div className="border-t border-border my-1" />
+                                            <button
+                                                onClick={() => setExcludeTags([])}
+                                                className="flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                                            >
+                                                <X className="w-3 h-3" /> Clear all
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Star filter tabs */}
                     <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border">
                         <button
                             onClick={() => setFilter("all")}
