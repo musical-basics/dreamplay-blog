@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset, deleteAsset } from "@/app/actions/assets"
 import { getAllTags, getAllAssetTagLinks, setAssetTags, createTag } from "@/app/actions/tags"
-import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus, Filter, X } from "lucide-react"
+import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus, Filter, X, Tags } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -33,6 +33,12 @@ export default function AssetsLibraryPage() {
     const includeRef = useRef<HTMLDivElement>(null)
     const excludeRef = useRef<HTMLDivElement>(null)
     const [showAllTags, setShowAllTags] = useState(false)
+
+    // Bulk tagging state
+    const [selectedAssets, setSelectedAssets] = useState<string[]>([])
+    const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
+    const [showBulkTagPicker, setShowBulkTagPicker] = useState(false)
+    const [isBulkTugging, setIsBulkTugging] = useState(false)
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -153,6 +159,60 @@ export default function AssetsLibraryPage() {
 
         return true
     })
+
+    const handleSelectAsset = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation()
+        e.preventDefault()
+
+        if (e.shiftKey && lastSelectedId) {
+            const currentIndex = filteredAssets.findIndex(a => a.id === id)
+            const lastIndex = filteredAssets.findIndex(a => a.id === lastSelectedId)
+
+            if (currentIndex !== -1 && lastIndex !== -1) {
+                const start = Math.min(currentIndex, lastIndex)
+                const end = Math.max(currentIndex, lastIndex)
+
+                const rangeIds = filteredAssets.slice(start, end + 1).map(a => a.id)
+                setSelectedAssets(prev => Array.from(new Set([...prev, ...rangeIds])))
+                return
+            }
+        }
+
+        if (selectedAssets.includes(id)) {
+            setSelectedAssets(prev => prev.filter(x => x !== id))
+            setLastSelectedId(null) // Reset anchor on deselect
+        } else {
+            setSelectedAssets(prev => [...prev, id])
+            setLastSelectedId(id)
+        }
+    }
+
+    const handleBulkToggleTag = async (tagId: string) => {
+        setIsBulkTugging(true)
+        try {
+            // Check if ALL selected assets currently have this tag
+            const allHaveTag = selectedAssets.every(id => (assetTagMap[id] || []).includes(tagId))
+            const newMap = { ...assetTagMap }
+
+            await Promise.all(selectedAssets.map(async (id) => {
+                const currentTags = newMap[id] || []
+                let updatedTags: string[]
+
+                if (allHaveTag) {
+                    updatedTags = currentTags.filter(t => t !== tagId) // Remove from all
+                } else {
+                    updatedTags = currentTags.includes(tagId) ? currentTags : [...currentTags, tagId] // Add to all
+                }
+
+                newMap[id] = updatedTags
+                await setAssetTags(id, updatedTags)
+            }))
+
+            setAssetTagMap(newMap)
+        } finally {
+            setIsBulkTugging(false)
+        }
+    }
 
     const starredCount = assets.filter(a => a.is_starred).length
 
@@ -411,6 +471,65 @@ export default function AssetsLibraryPage() {
                 </div>
             )}
 
+            {/* Sticky Bulk Action Bar */}
+            {selectedAssets.length > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-200">
+                    <div className="bg-popover border border-border shadow-2xl rounded-full px-4 py-2 flex items-center gap-4">
+                        <span className="text-sm font-medium px-2">{selectedAssets.length} selected</span>
+
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowBulkTagPicker(v => !v)}
+                                disabled={isBulkTugging}
+                                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50"
+                            >
+                                {isBulkTugging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Tags className="w-4 h-4" />}
+                                Bulk Tag
+                            </button>
+
+                            {showBulkTagPicker && (
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 bg-popover border border-border rounded-xl shadow-xl p-2 w-56 max-h-64 overflow-y-auto">
+                                    <p className="text-xs font-medium text-muted-foreground px-2 pb-2 mb-2 border-b border-border">Apply to {selectedAssets.length} assets</p>
+                                    {allTags.map(tag => {
+                                        const allHaveIt = selectedAssets.every(id => (assetTagMap[id] || []).includes(tag.id))
+                                        const someHaveIt = !allHaveIt && selectedAssets.some(id => (assetTagMap[id] || []).includes(tag.id))
+
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                onClick={() => handleBulkToggleTag(tag.id)}
+                                                className={cn(
+                                                    "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                                    allHaveIt ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                )}
+                                            >
+                                                <div
+                                                    className="w-3 h-3 rounded-full shrink-0"
+                                                    style={{ backgroundColor: tag.color }}
+                                                />
+                                                <span className="flex-1 truncate">{tag.name}</span>
+                                                {allHaveIt && <Check className="w-3 h-3 text-primary" />}
+                                                {someHaveIt && <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" title="Some selected assets have this tag" />}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="w-px h-6 bg-border" />
+
+                        <button
+                            onClick={() => { setSelectedAssets([]); setLastSelectedId(null); setShowBulkTagPicker(false); }}
+                            className="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            title="Clear selection"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {loading ? (
                 <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
             ) : (
@@ -420,11 +539,24 @@ export default function AssetsLibraryPage() {
                             key={asset.id}
                             className={cn(
                                 "bg-card border rounded-xl overflow-hidden shadow-sm flex flex-col transition-colors",
-                                asset.is_starred ? "border-yellow-500/40 ring-1 ring-yellow-500/20" : "border-border"
+                                asset.is_starred ? "border-yellow-500/40 ring-1 ring-yellow-500/20" : "border-border",
+                                selectedAssets.includes(asset.id) && "border-primary ring-2 ring-primary bg-primary/5"
                             )}
                         >
-                            <div className="h-40 bg-muted/30 border-b border-border flex items-center justify-center p-2 relative">
+                            <div className="h-40 bg-muted/30 border-b border-border flex items-center justify-center p-2 relative group">
                                 <img src={asset.public_url} alt={asset.filename} className="max-h-full max-w-full object-contain rounded" />
+                                {/* Selection Checkbox */}
+                                <div
+                                    onClick={(e) => handleSelectAsset(e, asset.id)}
+                                    className={cn(
+                                        "absolute top-2 left-2 w-6 h-6 rounded flex items-center justify-center border transition-all cursor-pointer shadow-sm z-10",
+                                        selectedAssets.includes(asset.id)
+                                            ? "bg-primary border-primary text-primary-foreground opacity-100"
+                                            : "bg-black/40 border-white/40 text-transparent hover:border-white opacity-0 group-hover:opacity-100"
+                                    )}
+                                >
+                                    <Check className="w-4 h-4" />
+                                </div>
                                 {/* Star button overlay */}
                                 <button
                                     onClick={() => handleToggleStar(asset.id, !!asset.is_starred)}
