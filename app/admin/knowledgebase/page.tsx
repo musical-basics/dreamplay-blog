@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, type ResearchDoc } from "@/app/actions/knowledgebase"
-import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2 } from "lucide-react"
+import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -151,8 +151,11 @@ export default function KnowledgebasePage() {
                                         />
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        {doc.author || "Unknown"} {doc.year ? `(${doc.year})` : ""}
+                                        {doc.author || doc.source || "Unknown"} {doc.year ? `(${doc.year})` : ""}
                                     </p>
+                                    {doc.r2_key && !doc.content && (
+                                        <p className="text-[10px] text-yellow-500/70 mt-1">⏳ Pending extraction</p>
+                                    )}
                                 </CardContent>
                             </Card>
                         ))
@@ -204,6 +207,20 @@ export default function KnowledgebasePage() {
                                     </div>
                                 )}
 
+                                {/* R2 PDF Link */}
+                                {form.r2_key && (
+                                    <a
+                                        href={`${process.env.NEXT_PUBLIC_R2_PUBLIC_DOMAIN || 'https://pub-2908cd1cb16b4bc0b70e0e2f4b670e12.r2.dev'}/${form.r2_key}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-xs text-primary hover:underline bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 w-fit"
+                                    >
+                                        <FileText className="w-3.5 h-3.5" />
+                                        View PDF in R2
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                )}
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="col-span-2 space-y-1.5">
                                         <Label className="text-xs">Document Title *</Label>
@@ -218,8 +235,16 @@ export default function KnowledgebasePage() {
                                         <Input value={form.year || ""} onChange={e => setForm({ ...form, year: e.target.value })} placeholder="e.g. 2008" />
                                     </div>
                                     <div className="col-span-2 space-y-1.5">
+                                        <Label className="text-xs">Source / Publisher</Label>
+                                        <Input value={form.source || ""} onChange={e => setForm({ ...form, source: e.target.value })} placeholder="e.g. Stanford Report" />
+                                    </div>
+                                    <div className="col-span-2 space-y-1.5">
                                         <Label className="text-xs">Source URL (For hyperlinking citations)</Label>
                                         <Input value={form.url || ""} onChange={e => setForm({ ...form, url: e.target.value })} placeholder="https://..." />
+                                    </div>
+                                    <div className="col-span-2 space-y-1.5">
+                                        <Label className="text-xs">Description</Label>
+                                        <Input value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief description of the research content" />
                                     </div>
                                 </div>
 

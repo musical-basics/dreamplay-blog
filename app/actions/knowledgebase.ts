@@ -13,6 +13,13 @@ export interface ResearchDoc {
     content: string;
     is_active: boolean;
     created_at: string;
+    // New fields from bulk upload
+    source: string | null;
+    description: string | null;
+    r2_key: string | null;
+    batch: string | null;
+    file_size_kb: number | null;
+    download_status: string | null;
 }
 
 export async function getKnowledgebase() {
