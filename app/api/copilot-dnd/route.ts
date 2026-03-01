@@ -144,7 +144,11 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             const { getDescribedAssets } = await import("@/app/actions/assets");
             const library = await getDescribedAssets();
             if (library && library.length > 0) {
-                const libraryText = library.map((img: any) => `- URL: ${img.public_url}\n  Description: ${img.description}`).join("\n\n");
+                const libraryText = library.map((img: any) => {
+                    let line = `- URL: ${img.public_url}\n  Description: ${img.description}`;
+                    if (img.tags && img.tags.length > 0) line += `\n  Tags: ${img.tags.join(", ")}`;
+                    return line;
+                }).join("\n\n");
                 imageContextBlock = `\n### ASSET LIBRARY:\nYou have access to the following pre-uploaded images.\n${libraryText}\n`;
                 imageRuleBlock = `- If a library image (see ASSET LIBRARY section) fits the context, HARDCODE its exact URL directly into the \`src\` prop.\n- If NO library image fits, use a dynamic AI placeholder: \`https://image.pollinations.ai/prompt/{URL_ENCODED_PROMPT}?width=800&height=400&nologo=true\`.\n- DO NOT use {{mustache}} variables for image src! Hardcode URLs so they render immediately.`;
             } else {

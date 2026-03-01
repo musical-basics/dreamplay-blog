@@ -257,12 +257,13 @@ export async function getAllLibraryAssets() {
 }
 
 // Fetches ONLY starred + described assets to feed to the AI Prompt
+// Also includes tag names for richer context
 export async function getDescribedAssets() {
     const supabase = getSupabase()
     try {
         const { data, error } = await supabase
             .from("media_assets")
-            .select("public_url, description, filename")
+            .select("id, public_url, description, filename")
             .eq("is_deleted", false)
             .eq("is_starred", true)
             .neq("filename", ".folder")
@@ -270,7 +271,43 @@ export async function getDescribedAssets() {
             .neq("description", "")
             .limit(50)
 
-        return data || []
+        if (error || !data) return []
+
+        // Fetch tag names for these assets
+        let tagMap: Record<string, string[]> = {}
+        try {
+            const assetIds = data.map(a => a.id)
+            const { data: links } = await supabase
+                .from("asset_tag_links")
+                .select("asset_id, tag_id")
+                .in("asset_id", assetIds)
+
+            if (links && links.length > 0) {
+                const tagIds = [...new Set(links.map(l => l.tag_id))]
+                const { data: tags } = await supabase
+                    .from("asset_tags")
+                    .select("id, name")
+                    .in("id", tagIds)
+
+                const tagNameMap: Record<string, string> = {}
+                for (const t of tags || []) tagNameMap[t.id] = t.name
+
+                for (const link of links) {
+                    if (!tagMap[link.asset_id]) tagMap[link.asset_id] = []
+                    const name = tagNameMap[link.tag_id]
+                    if (name) tagMap[link.asset_id].push(name)
+                }
+            }
+        } catch {
+            // Tags tables may not exist yet — silently continue
+        }
+
+        return data.map(a => ({
+            public_url: a.public_url,
+            description: a.description,
+            filename: a.filename,
+            tags: tagMap[a.id] || [],
+        }))
     } catch {
         return [] // Fallback if column doesn't exist yet
     }

@@ -167,7 +167,11 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
             const { getDescribedAssets } = await import("@/app/actions/assets");
             const library = await getDescribedAssets();
             if (library && library.length > 0) {
-                const libraryText = library.map((img: any) => `- URL: ${img.public_url}\n  Description: ${img.description}`).join("\n\n");
+                const libraryText = library.map((img: any) => {
+                    let line = `- URL: ${img.public_url}\n  Description: ${img.description}`;
+                    if (img.tags && img.tags.length > 0) line += `\n  Tags: ${img.tags.join(", ")}`;
+                    return line;
+                }).join("\n\n");
                 imageContextBlock = `\n### ASSET LIBRARY:\nYou have access to the following pre-uploaded images.\n${libraryText}\n`;
                 imageRuleBlock = `4. **IMAGE HANDLING (LIBRARY MODE):** 
    - ALWAYS use {{mustache}} variables for the \`src\` attribute (e.g., \`<img src="{{hero_src}}" />\`). DO NOT hardcode URLs in the HTML.
