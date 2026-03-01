@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef } from "react"
 import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset, deleteAsset } from "@/app/actions/assets"
-import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2 } from "lucide-react"
+import { getAllTags, getAllAssetTagLinks, setAssetTags } from "@/app/actions/tags"
+import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import imageCompression from "browser-image-compression"
+
+type TagItem = { id: string; name: string; color: string }
 
 type FilterMode = "all" | "starred" | "unstarred"
 
@@ -20,14 +23,29 @@ export default function AssetsLibraryPage() {
     const [filter, setFilter] = useState<FilterMode>("all")
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [allTags, setAllTags] = useState<TagItem[]>([])
+    const [assetTagMap, setAssetTagMap] = useState<Record<string, string[]>>({})
+    const [openTagPicker, setOpenTagPicker] = useState<string | null>(null)
 
     useEffect(() => {
-        const fetchAllAssets = async () => {
-            const dbAssets = await getAllLibraryAssets()
+        const fetchAll = async () => {
+            const [dbAssets, dbTags, dbLinks] = await Promise.all([
+                getAllLibraryAssets(),
+                getAllTags(),
+                getAllAssetTagLinks(),
+            ])
             setAssets(dbAssets)
+            setAllTags(dbTags as TagItem[])
+            // Build a map: assetId → tagId[]
+            const map: Record<string, string[]> = {}
+            for (const link of dbLinks) {
+                if (!map[link.asset_id]) map[link.asset_id] = []
+                map[link.asset_id].push(link.tag_id)
+            }
+            setAssetTagMap(map)
             setLoading(false)
         }
-        fetchAllAssets()
+        fetchAll()
     }, [])
 
     const handleSaveDescription = async (id: string, description: string) => {
@@ -46,6 +64,15 @@ export default function AssetsLibraryPage() {
         if (!confirm("Delete this asset? This action can't be undone.")) return
         setAssets(prev => prev.filter(a => a.id !== id))
         await deleteAsset(id)
+    }
+
+    const handleToggleTag = async (assetId: string, tagId: string) => {
+        const current = assetTagMap[assetId] || []
+        const updated = current.includes(tagId)
+            ? current.filter(t => t !== tagId)
+            : [...current, tagId]
+        setAssetTagMap(prev => ({ ...prev, [assetId]: updated }))
+        await setAssetTags(assetId, updated)
     }
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,6 +251,57 @@ export default function AssetsLibraryPage() {
                                             }
                                         }}
                                     />
+                                </div>
+                                {/* Tags */}
+                                <div className="flex flex-wrap items-center gap-1.5 min-h-[24px] relative">
+                                    {(assetTagMap[asset.id] || []).map(tagId => {
+                                        const tag = allTags.find(t => t.id === tagId)
+                                        if (!tag) return null
+                                        return (
+                                            <span
+                                                key={tag.id}
+                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-white"
+                                                style={{ backgroundColor: tag.color }}
+                                            >
+                                                {tag.name}
+                                            </span>
+                                        )
+                                    })}
+                                    <button
+                                        onClick={() => setOpenTagPicker(openTagPicker === asset.id ? null : asset.id)}
+                                        className="p-0.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                                        title="Manage tags"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                    </button>
+                                    {openTagPicker === asset.id && (
+                                        <div className="absolute bottom-full left-0 mb-1 z-20 bg-popover border border-border rounded-lg shadow-xl p-2 min-w-[180px] max-h-48 overflow-y-auto">
+                                            {allTags.length === 0 ? (
+                                                <p className="text-xs text-muted-foreground px-2 py-1">No tags yet. Create tags first.</p>
+                                            ) : (
+                                                allTags.map(tag => {
+                                                    const isActive = (assetTagMap[asset.id] || []).includes(tag.id)
+                                                    return (
+                                                        <button
+                                                            key={tag.id}
+                                                            onClick={() => handleToggleTag(asset.id, tag.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors text-left",
+                                                                isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                            )}
+                                                        >
+                                                            <div
+                                                                className="w-3 h-3 rounded-full shrink-0"
+                                                                style={{ backgroundColor: tag.color }}
+                                                            />
+                                                            <span className="flex-1">{tag.name}</span>
+                                                            {isActive && <Check className="w-3 h-3 text-primary" />}
+                                                        </button>
+                                                    )
+                                                })
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex items-center justify-between text-[10px] text-muted-foreground h-6">
                                     <button
