@@ -1,13 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar } from "@/app/actions/assets"
-import { Loader2, ImageIcon, Search, Check, Star } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset } from "@/app/actions/assets"
+import { Loader2, ImageIcon, Search, Check, Star, Upload } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import imageCompression from "browser-image-compression"
 
 type FilterMode = "all" | "starred" | "unstarred"
+
+const COMPRESSION_THRESHOLD = 300 * 1024 // 300KB
 
 export default function AssetsLibraryPage() {
     const [assets, setAssets] = useState<any[]>([])
@@ -15,6 +18,8 @@ export default function AssetsLibraryPage() {
     const [search, setSearch] = useState("")
     const [savingId, setSavingId] = useState<string | null>(null)
     const [filter, setFilter] = useState<FilterMode>("all")
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         const fetchAllAssets = async () => {
@@ -35,6 +40,43 @@ export default function AssetsLibraryPage() {
         // Optimistic update
         setAssets(prev => prev.map(a => a.id === id ? { ...a, is_starred: !currentlyStarred } : a))
         await toggleAssetStar(id, !currentlyStarred)
+    }
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files
+        if (!files || files.length === 0) return
+
+        setUploading(true)
+        try {
+            for (const rawFile of Array.from(files)) {
+                let fileToUpload: File = rawFile
+
+                // Compress if image is over 300KB
+                if (rawFile.type.startsWith("image/") && rawFile.size > COMPRESSION_THRESHOLD) {
+                    const compressed = await imageCompression(rawFile, {
+                        maxSizeMB: 0.3,       // target ~300KB
+                        maxWidthOrHeight: 2048,
+                        useWebWorker: true,
+                        fileType: rawFile.type as string,
+                    })
+                    fileToUpload = new File([compressed], rawFile.name, { type: compressed.type })
+                }
+
+                const formData = new FormData()
+                formData.set("file", fileToUpload)
+
+                const result = await uploadHashedAsset(formData, "")
+                if (result.success && result.asset) {
+                    setAssets(prev => [result.asset, ...prev])
+                }
+            }
+        } catch (err) {
+            console.error("Upload failed:", err)
+        } finally {
+            setUploading(false)
+            // Reset the input so the same file can be re-selected
+            if (fileInputRef.current) fileInputRef.current.value = ""
+        }
     }
 
     const filteredAssets = assets.filter(a => {
@@ -71,36 +113,64 @@ export default function AssetsLibraryPage() {
                     />
                 </div>
 
-                {/* Filter tabs */}
-                <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border">
+                <div className="flex items-center gap-3">
+                    {/* Upload button */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleUpload}
+                    />
                     <button
-                        onClick={() => setFilter("all")}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
                         className={cn(
-                            "text-xs font-medium px-3 py-1.5 rounded-md transition-all",
-                            filter === "all" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                            "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all",
+                            "bg-primary text-primary-foreground hover:bg-primary/90",
+                            uploading && "opacity-60 cursor-not-allowed"
                         )}
                     >
-                        All ({assets.length})
-                    </button>
-                    <button
-                        onClick={() => setFilter("starred")}
-                        className={cn(
-                            "text-xs font-medium px-3 py-1.5 rounded-md transition-all flex items-center gap-1",
-                            filter === "starred" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                        {uploading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Upload className="w-4 h-4" />
                         )}
-                    >
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        Starred ({starredCount})
+                        {uploading ? "Uploading..." : "Upload Image"}
                     </button>
-                    <button
-                        onClick={() => setFilter("unstarred")}
-                        className={cn(
-                            "text-xs font-medium px-3 py-1.5 rounded-md transition-all",
-                            filter === "unstarred" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        Unstarred ({assets.length - starredCount})
-                    </button>
+
+                    {/* Filter tabs */}
+                    <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border">
+                        <button
+                            onClick={() => setFilter("all")}
+                            className={cn(
+                                "text-xs font-medium px-3 py-1.5 rounded-md transition-all",
+                                filter === "all" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            All ({assets.length})
+                        </button>
+                        <button
+                            onClick={() => setFilter("starred")}
+                            className={cn(
+                                "text-xs font-medium px-3 py-1.5 rounded-md transition-all flex items-center gap-1",
+                                filter === "starred" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            Starred ({starredCount})
+                        </button>
+                        <button
+                            onClick={() => setFilter("unstarred")}
+                            className={cn(
+                                "text-xs font-medium px-3 py-1.5 rounded-md transition-all",
+                                filter === "unstarred" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Unstarred ({assets.length - starredCount})
+                        </button>
+                    </div>
                 </div>
             </div>
 
