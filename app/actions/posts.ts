@@ -243,8 +243,8 @@ export async function savePostBackup(postId: string): Promise<void> {
         .eq("post_id", postId)
         .order("created_at", { ascending: false })
 
-    if (versions && versions.length > 5) {
-        const idsToDelete = versions.slice(5).map(v => v.id)
+    if (versions && versions.length > 10) {
+        const idsToDelete = versions.slice(10).map(v => v.id)
         await supabase.from("post_versions").delete().in("id", idsToDelete)
     }
 }
