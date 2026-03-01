@@ -40,6 +40,22 @@ export default function AssetsLibraryPage() {
     const [showBulkTagPicker, setShowBulkTagPicker] = useState(false)
     const [isBulkTugging, setIsBulkTugging] = useState(false)
 
+    // Recently used tags (persisted in localStorage)
+    const [recentTagIds, setRecentTagIds] = useState<string[]>(() => {
+        if (typeof window === 'undefined') return []
+        try {
+            return JSON.parse(localStorage.getItem('recentAssetTags') || '[]')
+        } catch { return [] }
+    })
+
+    const addToRecentTags = (tagId: string) => {
+        setRecentTagIds(prev => {
+            const updated = [tagId, ...prev.filter(t => t !== tagId)].slice(0, 10)
+            localStorage.setItem('recentAssetTags', JSON.stringify(updated))
+            return updated
+        })
+    }
+
     useEffect(() => {
         const fetchAll = async () => {
             const [dbAssets, dbTags, dbLinks] = await Promise.all([
@@ -81,10 +97,12 @@ export default function AssetsLibraryPage() {
 
     const handleToggleTag = async (assetId: string, tagId: string) => {
         const current = assetTagMap[assetId] || []
-        const updated = current.includes(tagId)
-            ? current.filter(t => t !== tagId)
-            : [...current, tagId]
+        const isAdding = !current.includes(tagId)
+        const updated = isAdding
+            ? [...current, tagId]
+            : current.filter(t => t !== tagId)
         setAssetTagMap(prev => ({ ...prev, [assetId]: updated }))
+        if (isAdding) addToRecentTags(tagId)
         await setAssetTags(assetId, updated)
     }
 
@@ -193,6 +211,8 @@ export default function AssetsLibraryPage() {
             // Check if ALL selected assets currently have this tag
             const allHaveTag = selectedAssets.every(id => (assetTagMap[id] || []).includes(tagId))
             const newMap = { ...assetTagMap }
+
+            if (!allHaveTag) addToRecentTags(tagId)
 
             await Promise.all(selectedAssets.map(async (id) => {
                 const currentTags = newMap[id] || []
@@ -610,6 +630,27 @@ export default function AssetsLibraryPage() {
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                     </button>
+                                    {/* Recent tag suggestions (faded, quick-assign) */}
+                                    {(() => {
+                                        const assigned = assetTagMap[asset.id] || []
+                                        const suggestions = recentTagIds
+                                            .filter(tid => !assigned.includes(tid))
+                                            .slice(0, 3)
+                                            .map(tid => allTags.find(t => t.id === tid))
+                                            .filter(Boolean) as TagItem[]
+                                        if (suggestions.length === 0) return null
+                                        return suggestions.map(tag => (
+                                            <button
+                                                key={tag.id}
+                                                onClick={() => handleToggleTag(asset.id, tag.id)}
+                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border border-dashed transition-all opacity-30 hover:opacity-100"
+                                                style={{ borderColor: tag.color, color: tag.color }}
+                                                title={`Quick-assign "${tag.name}"`}
+                                            >
+                                                {tag.name}
+                                            </button>
+                                        ))
+                                    })()}
                                     {openTagPicker === asset.id && (
                                         <div className="absolute bottom-full left-0 mb-1 z-20 bg-popover border border-border rounded-lg shadow-xl p-2 min-w-[200px] max-h-56 overflow-y-auto">
                                             {allTags.map(tag => {
@@ -649,6 +690,7 @@ export default function AssetsLibraryPage() {
                                                         const current = assetTagMap[asset.id] || []
                                                         const updated = [...current, newTag.id]
                                                         setAssetTagMap(prev => ({ ...prev, [asset.id]: updated }))
+                                                        addToRecentTags(newTag.id)
                                                         await setAssetTags(asset.id, updated)
                                                     }
                                                     input.value = ""
