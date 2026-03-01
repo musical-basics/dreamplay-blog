@@ -128,3 +128,102 @@ export async function extractPdf(formData: FormData): Promise<{ markdown?: strin
     }
 }
 
+export async function extractFromR2(id: string): Promise<{ success?: boolean; error?: string }> {
+    try {
+        const supabase = await createClient()
+
+        const { data: doc, error: fetchError } = await supabase
+            .from("research_knowledgebase")
+            .select("id, title, author, year, r2_key")
+            .eq("id", id)
+            .single()
+
+        if (fetchError || !doc) return { error: "Document not found" }
+        if (!doc.r2_key) return { error: "No R2 key — this document has no uploaded PDF" }
+
+        const publicDomain = process.env.R2_PUBLIC_DOMAIN || "https://pub-2908cd1cb16b4bc0b70e0e2f4b670e12.r2.dev"
+        const pdfUrl = `${publicDomain}/${doc.r2_key}`
+        const res = await fetch(pdfUrl)
+        if (!res.ok) return { error: `Failed to download PDF: HTTP ${res.status}` }
+
+        const pdfBuffer = Buffer.from(await res.arrayBuffer())
+        const base64Data = pdfBuffer.toString("base64")
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! })
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        {
+                            inlineData: {
+                                data: base64Data,
+                                mimeType: "application/pdf"
+                            }
+                        },
+                        {
+                            text: `Extract the complete text of this document and convert it into highly readable Markdown.
+
+Rules:
+1. Preserve all statistics, quotes, headings, and data accurately.
+2. Remove any page numbers, headers, footers, or irrelevant publishing stamps.
+3. Do not include introductory conversational text — just output the raw Markdown.
+
+After the Markdown content, add a metadata block at the very end in this exact format:
+---METADATA---
+AUTHOR: [author name(s), comma-separated, or "unknown" if not found]
+YEAR: [publication year as 4 digits, or "unknown" if not found]
+
+The document title is: "${doc.title}"`
+                        }
+                    ]
+                }
+            ]
+        })
+
+        let text = response.text || ""
+
+        let detectedAuthor: string | null = null
+        let detectedYear: string | null = null
+
+        const metadataMatch = text.match(/---METADATA---\s*\n\s*AUTHOR:\s*(.+)\s*\n\s*YEAR:\s*(.+)/i)
+        if (metadataMatch) {
+            const rawAuthor = metadataMatch[1].trim()
+            const rawYear = metadataMatch[2].trim()
+            if (rawAuthor && rawAuthor.toLowerCase() !== "unknown") detectedAuthor = rawAuthor
+            if (rawYear && rawYear.toLowerCase() !== "unknown" && /^\d{4}$/.test(rawYear)) detectedYear = rawYear
+            text = text.replace(/---METADATA---[\s\S]*$/, "").trim()
+        }
+
+        if (text.startsWith("```markdown")) {
+            text = text.replace(/^```markdown\n/, "").replace(/\n```$/, "")
+        } else if (text.startsWith("```")) {
+            text = text.replace(/^```\n/, "").replace(/\n```$/, "")
+        }
+
+        const update: Record<string, unknown> = {
+            content: text.trim(),
+            updated_at: new Date().toISOString(),
+        }
+        if ((!doc.author || doc.author === "") && detectedAuthor) update.author = detectedAuthor
+        if ((!doc.year || doc.year === "") && detectedYear) update.year = detectedYear
+
+        const { error: updateError } = await supabase
+            .from("research_knowledgebase")
+            .update(update)
+            .eq("id", id)
+
+        if (updateError) return { error: `DB update failed: ${updateError.message}` }
+
+        revalidatePath("/admin/knowledgebase")
+        return { success: true }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error"
+        console.error("R2 Extraction Error:", error)
+        return { error: message }
+    }
+}
+
+

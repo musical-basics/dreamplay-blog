@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, type ResearchDoc } from "@/app/actions/knowledgebase"
-import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText } from "lucide-react"
+import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, extractFromR2, type ResearchDoc } from "@/app/actions/knowledgebase"
+import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +18,7 @@ export default function KnowledgebasePage() {
     const [isConverting, setIsConverting] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+    const [extractingId, setExtractingId] = useState<string | null>(null)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -97,6 +98,27 @@ export default function KnowledgebasePage() {
         fetchDocs()
     }
 
+    const handleExtractFromR2 = async (id: string) => {
+        setExtractingId(id)
+        setStatusMessage({ type: 'success', text: 'Extracting PDF with Gemini... This may take 15-30 seconds.' })
+        try {
+            const result = await extractFromR2(id)
+            if (result.error) throw new Error(result.error)
+            setStatusMessage({ type: 'success', text: 'PDF extracted and saved to knowledgebase!' })
+            fetchDocs()
+            // Refresh the form if this entry is currently selected
+            if (form?.id === id) {
+                const updated = (await getKnowledgebase()).find(d => d.id === id)
+                if (updated) setForm(updated)
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error"
+            setStatusMessage({ type: 'error', text: `Extraction failed: ${message}` })
+        } finally {
+            setExtractingId(null)
+        }
+    }
+
     return (
         <div className="p-6 max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
             {/* Status toast */}
@@ -154,7 +176,23 @@ export default function KnowledgebasePage() {
                                         {doc.author || doc.source || "Unknown"} {doc.year ? `(${doc.year})` : ""}
                                     </p>
                                     {doc.r2_key && !doc.content && (
-                                        <p className="text-[10px] text-yellow-500/70 mt-1">⏳ Pending extraction</p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleExtractFromR2(doc.id) }}
+                                                disabled={extractingId === doc.id}
+                                                className="flex items-center gap-1 text-[10px] font-medium text-yellow-500 hover:text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20 px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+                                            >
+                                                {extractingId === doc.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                                                {extractingId === doc.id ? "Extracting..." : "Extract Now"}
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(doc.id) }}
+                                                className="flex items-center gap-1 text-[10px] font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded transition-colors"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                                Delete
+                                            </button>
+                                        </div>
                                     )}
                                 </CardContent>
                             </Card>
@@ -172,6 +210,18 @@ export default function KnowledgebasePage() {
                                     {form.id && (
                                         <Button variant="ghost" size="icon" onClick={() => handleDelete(form.id!)} className="text-red-400 hover:text-red-500 hover:bg-red-500/10">
                                             <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {form.id && form.r2_key && !form.content && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleExtractFromR2(form.id!)}
+                                            disabled={extractingId === form.id}
+                                            className="gap-1 text-yellow-500 border-yellow-500/30 hover:bg-yellow-500/10"
+                                        >
+                                            {extractingId === form.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                            {extractingId === form.id ? "Extracting..." : "Extract Now"}
                                         </Button>
                                     )}
                                     <Button onClick={handleSave} disabled={isSaving || isConverting || !form.title || !form.content} size="sm">
