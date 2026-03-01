@@ -215,6 +215,20 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
     const starredCount = useMemo(() => allAssets.filter(a => a.is_starred).length, [allAssets])
     const unstarredCount = useMemo(() => allAssets.filter(a => !a.is_starred).length, [allAssets])
 
+    // Top 5 most-used tags (by number of assets tagged)
+    const topTags = useMemo(() => {
+        const counts: Record<string, number> = {}
+        for (const tagIds of Object.values(assetTagMap)) {
+            for (const tid of tagIds) {
+                counts[tid] = (counts[tid] || 0) + 1
+            }
+        }
+        return allTags
+            .filter(t => counts[t.id])
+            .sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0))
+            .slice(0, 5)
+    }, [assetTagMap, allTags])
+
     const handleBulkDelete = async () => {
         const selected = getSelectedAssets()
         if (selected.length === 0) return
@@ -723,6 +737,33 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Top Tags (quick filters) */}
+                            {topTags.length > 0 && (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] uppercase font-semibold text-neutral-500 mr-0.5">Top tags</span>
+                                    {topTags.map(tag => {
+                                        const isActive = includeTags.includes(tag.id)
+                                        return (
+                                            <button
+                                                key={tag.id}
+                                                onClick={() => setIncludeTags(prev =>
+                                                    isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                                )}
+                                                className={cn(
+                                                    "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border transition-colors",
+                                                    isActive
+                                                        ? "bg-green-500/15 border-green-500/40 text-green-400"
+                                                        : "bg-neutral-800/60 border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:border-neutral-500",
+                                                )}
+                                            >
+                                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                                                {tag.name}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            )}
 
                             {/* Breadcrumb Navigation (hidden when filtering) */}
                             {!isFilterActive && (
