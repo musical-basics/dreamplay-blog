@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect } from "react"
-import { X, Upload, ImageIcon, Loader2, Trash2, FolderPlus, Folder, ChevronRight, LayoutGrid, List, Home, FolderInput, CheckSquare, Square } from "lucide-react"
+import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { X, Upload, ImageIcon, Loader2, Trash2, FolderPlus, Folder, ChevronRight, LayoutGrid, List, Home, FolderInput, CheckSquare, Square, Search, Star, Filter } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { deleteAsset, deleteAssets, createFolder, deleteFolder, moveAsset, moveAssets, getAssets, getFolders, getSubFolders, uploadHashedAsset } from "@/app/actions/assets"
+import { deleteAsset, deleteAssets, createFolder, deleteFolder, moveAsset, moveAssets, getAssets, getFolders, getSubFolders, uploadHashedAsset, getAllLibraryAssets } from "@/app/actions/assets"
+import { getAllTags, getAllAssetTagLinks } from "@/app/actions/tags"
 import { ImageCropper } from "./image-cropper"
 
 interface Asset {
@@ -15,7 +16,12 @@ interface Asset {
     public_url: string
     size?: number
     created_at?: string
+    is_starred?: boolean
+    description?: string
 }
+
+type TagItem = { id: string; name: string; color: string }
+type StarFilter = "all" | "starred" | "unstarred"
 
 interface FolderItem {
     name: string
@@ -53,7 +59,21 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
     const [showMoveDialog, setShowMoveDialog] = useState(false)
     const [allFolders, setAllFolders] = useState<string[]>([])
 
+    // ─── Search & Filter State ───
+    const [searchQuery, setSearchQuery] = useState("")
+    const [starFilter, setStarFilter] = useState<StarFilter>("all")
+    const [allTags, setAllTags] = useState<TagItem[]>([])
+    const [assetTagMap, setAssetTagMap] = useState<Record<string, string[]>>({})
+    const [includeTags, setIncludeTags] = useState<string[]>([])
+    const [excludeTags, setExcludeTags] = useState<string[]>([])
+    const [showIncludeDropdown, setShowIncludeDropdown] = useState(false)
+    const [showExcludeDropdown, setShowExcludeDropdown] = useState(false)
+    const includeRef = useRef<HTMLDivElement>(null)
+    const excludeRef = useRef<HTMLDivElement>(null)
+    const [allAssets, setAllAssets] = useState<Asset[]>([])
+
     const isMultiSelectMode = multiSelectedIds.size > 0
+    const isFilterActive = searchQuery.trim() !== "" || starFilter !== "all" || includeTags.length > 0 || excludeTags.length > 0
 
     // ─── Fetch assets from DB ───
     const fetchAssets = useCallback(async () => {
@@ -79,11 +99,29 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
         setLoading(false)
     }, [currentFolder])
 
+    // Fetch tags + all assets (for filtered view) on open
+    const fetchFilterData = useCallback(async () => {
+        const [dbTags, dbLinks, dbAllAssets] = await Promise.all([
+            getAllTags(),
+            getAllAssetTagLinks(),
+            getAllLibraryAssets(),
+        ])
+        setAllTags(dbTags as TagItem[])
+        setAllAssets(dbAllAssets as Asset[])
+        const map: Record<string, string[]> = {}
+        for (const link of dbLinks) {
+            if (!map[link.asset_id]) map[link.asset_id] = []
+            map[link.asset_id].push(link.tag_id)
+        }
+        setAssetTagMap(map)
+    }, [])
+
     useEffect(() => {
         if (isOpen) {
             fetchAssets()
+            fetchFilterData()
         }
-    }, [isOpen, fetchAssets])
+    }, [isOpen, fetchAssets, fetchFilterData])
 
     // Reset state when modal closes
     useEffect(() => {
@@ -94,8 +132,22 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
             setCreatingFolder(false)
             setMultiSelectedIds(new Set())
             setShowMoveDialog(false)
+            setSearchQuery("")
+            setStarFilter("all")
+            setIncludeTags([])
+            setExcludeTags([])
         }
     }, [isOpen])
+
+    // Close filter dropdowns on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (includeRef.current && !includeRef.current.contains(e.target as Node)) setShowIncludeDropdown(false)
+            if (excludeRef.current && !excludeRef.current.contains(e.target as Node)) setShowExcludeDropdown(false)
+        }
+        document.addEventListener("mousedown", handler)
+        return () => document.removeEventListener("mousedown", handler)
+    }, [])
 
     // Clear multi-select when navigating folders
     useEffect(() => {
@@ -123,14 +175,45 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
     }
 
     const selectAll = () => {
-        if (multiSelectedIds.size === assets.length) {
+        if (multiSelectedIds.size === displayAssets.length) {
             setMultiSelectedIds(new Set())
         } else {
-            setMultiSelectedIds(new Set(assets.map(a => a.id)))
+            setMultiSelectedIds(new Set(displayAssets.map(a => a.id)))
         }
     }
 
-    const getSelectedAssets = () => assets.filter(a => multiSelectedIds.has(a.id))
+    const getSelectedAssets = () => displayAssets.filter(a => multiSelectedIds.has(a.id))
+
+    // ─── Filtered view ───
+    const displayAssets = useMemo(() => {
+        const source = isFilterActive ? allAssets : assets
+        return source.filter(a => {
+            // Search
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase()
+                const matchesName = a.filename.toLowerCase().includes(q)
+                const matchesDesc = (a.description || "").toLowerCase().includes(q)
+                if (!matchesName && !matchesDesc) return false
+            }
+            // Star filter
+            if (starFilter === "starred" && !a.is_starred) return false
+            if (starFilter === "unstarred" && a.is_starred) return false
+            // Include tags
+            if (includeTags.length > 0) {
+                const tags = assetTagMap[a.id] || []
+                if (!tags.some(t => includeTags.includes(t))) return false
+            }
+            // Exclude tags
+            if (excludeTags.length > 0) {
+                const tags = assetTagMap[a.id] || []
+                if (tags.some(t => excludeTags.includes(t))) return false
+            }
+            return true
+        })
+    }, [isFilterActive, allAssets, assets, searchQuery, starFilter, includeTags, excludeTags, assetTagMap])
+
+    const starredCount = useMemo(() => allAssets.filter(a => a.is_starred).length, [allAssets])
+    const unstarredCount = useMemo(() => allAssets.filter(a => !a.is_starred).length, [allAssets])
 
     const handleBulkDelete = async () => {
         const selected = getSelectedAssets()
@@ -514,83 +597,214 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                         </div>
                     ) : (
                         <div className="p-6 space-y-4 overflow-y-auto">
-                            {/* Breadcrumb Navigation */}
-                            <div className="flex items-center gap-1 text-sm flex-wrap">
-                                <button
-                                    onClick={navigateToRoot}
-                                    className={cn(
-                                        "flex items-center gap-1 px-2 py-1 rounded-md transition-colors",
-                                        currentFolder
-                                            ? "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800"
-                                            : "text-amber-400 bg-neutral-800/50",
-                                    )}
-                                >
-                                    <Home className="w-3.5 h-3.5" />
-                                    All Assets
-                                </button>
-                                {breadcrumbParts.map((part, i) => (
-                                    <div key={i} className="flex items-center gap-1">
-                                        <ChevronRight className="w-3.5 h-3.5 text-neutral-600" />
-                                        <button
-                                            onClick={() => navigateToBreadcrumb(i)}
-                                            className={cn(
-                                                "px-2 py-1 rounded-md transition-colors",
-                                                i === breadcrumbParts.length - 1
-                                                    ? "text-amber-400 bg-neutral-800/50"
-                                                    : "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800",
-                                            )}
-                                        >
-                                            {part}
+                            {/* Search Bar */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search by filename or description..."
+                                        className="w-full bg-neutral-900 border border-neutral-700 rounded-md pl-9 pr-8 py-2 text-sm text-neutral-100 outline-none focus:border-amber-500 placeholder:text-neutral-500 transition-colors"
+                                    />
+                                    {searchQuery && (
+                                        <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-neutral-400 hover:text-neutral-100">
+                                            <X className="w-3.5 h-3.5" />
                                         </button>
-                                    </div>
-                                ))}
+                                    )}
+                                </div>
+
+                                {/* Include Tags */}
+                                <div className="relative" ref={includeRef}>
+                                    <button
+                                        onClick={() => { setShowIncludeDropdown(!showIncludeDropdown); setShowExcludeDropdown(false) }}
+                                        className={cn(
+                                            "flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-md border transition-colors whitespace-nowrap",
+                                            includeTags.length > 0
+                                                ? "bg-green-500/10 border-green-500/30 text-green-400"
+                                                : "bg-neutral-900 border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-600",
+                                        )}
+                                    >
+                                        <Filter className="w-3 h-3" />
+                                        Include{includeTags.length > 0 && ` (${includeTags.length})`}
+                                    </button>
+                                    {showIncludeDropdown && (
+                                        <div className="absolute top-full mt-1 right-0 w-48 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
+                                            {allTags.map(tag => {
+                                                const isActive = includeTags.includes(tag.id)
+                                                return (
+                                                    <button
+                                                        key={tag.id}
+                                                        onClick={() => setIncludeTags(prev =>
+                                                            isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                                        )}
+                                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-neutral-800 transition-colors text-left"
+                                                    >
+                                                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                                                        <span className={cn("flex-1 truncate", isActive ? "text-green-400 font-medium" : "text-neutral-300")}>{tag.name}</span>
+                                                        {isActive && <span className="text-green-400">✓</span>}
+                                                    </button>
+                                                )
+                                            })}
+                                            {includeTags.length > 0 && (
+                                                <div className="border-t border-neutral-700 mt-1 pt-1">
+                                                    <button onClick={() => setIncludeTags([])} className="w-full px-3 py-1.5 text-xs text-red-400 hover:bg-neutral-800 text-left">
+                                                        Clear All
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Exclude Tags */}
+                                <div className="relative" ref={excludeRef}>
+                                    <button
+                                        onClick={() => { setShowExcludeDropdown(!showExcludeDropdown); setShowIncludeDropdown(false) }}
+                                        className={cn(
+                                            "flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-md border transition-colors whitespace-nowrap",
+                                            excludeTags.length > 0
+                                                ? "bg-red-500/10 border-red-500/30 text-red-400"
+                                                : "bg-neutral-900 border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:border-neutral-600",
+                                        )}
+                                    >
+                                        <X className="w-3 h-3" />
+                                        Exclude{excludeTags.length > 0 && ` (${excludeTags.length})`}
+                                    </button>
+                                    {showExcludeDropdown && (
+                                        <div className="absolute top-full mt-1 right-0 w-48 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto py-1">
+                                            {allTags.map(tag => {
+                                                const isActive = excludeTags.includes(tag.id)
+                                                return (
+                                                    <button
+                                                        key={tag.id}
+                                                        onClick={() => setExcludeTags(prev =>
+                                                            isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                                        )}
+                                                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-neutral-800 transition-colors text-left"
+                                                    >
+                                                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                                                        <span className={cn("flex-1 truncate", isActive ? "text-red-400 font-medium" : "text-neutral-300")}>{tag.name}</span>
+                                                        {isActive && <span className="text-red-400">✗</span>}
+                                                    </button>
+                                                )
+                                            })}
+                                            {excludeTags.length > 0 && (
+                                                <div className="border-t border-neutral-700 mt-1 pt-1">
+                                                    <button onClick={() => setExcludeTags([])} className="w-full px-3 py-1.5 text-xs text-red-400 hover:bg-neutral-800 text-left">
+                                                        Clear All
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Star Filter */}
+                                <div className="flex items-center bg-neutral-900 border border-neutral-700 rounded-md overflow-hidden text-xs">
+                                    <button
+                                        onClick={() => setStarFilter("all")}
+                                        className={cn("px-2 py-2 transition-colors", starFilter === "all" ? "bg-neutral-700 text-neutral-100" : "text-neutral-400 hover:text-neutral-100")}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        onClick={() => setStarFilter("starred")}
+                                        className={cn("px-2 py-2 transition-colors flex items-center gap-1", starFilter === "starred" ? "bg-amber-500/20 text-amber-400" : "text-neutral-400 hover:text-neutral-100")}
+                                    >
+                                        <Star className="w-3 h-3" /> {starredCount}
+                                    </button>
+                                    <button
+                                        onClick={() => setStarFilter("unstarred")}
+                                        className={cn("px-2 py-2 transition-colors", starFilter === "unstarred" ? "bg-neutral-700 text-neutral-100" : "text-neutral-400 hover:text-neutral-100")}
+                                    >
+                                        {unstarredCount}
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Upload Zone + New Folder */}
-                            <div className="flex gap-3">
-                                <div
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    onClick={() => document.getElementById("file-upload")?.click()}
-                                    className={cn(
-                                        "flex-1 flex items-center justify-center gap-3 py-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer",
-                                        isDragOver
-                                            ? "border-amber-500 bg-amber-500/5"
-                                            : "border-neutral-700 hover:border-amber-500 hover:bg-amber-500/5",
-                                    )}
-                                >
-                                    <input
-                                        id="file-upload"
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleFileSelect}
-                                    />
-                                    {uploading ? (
-                                        <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
-                                    ) : (
-                                        <Upload className={cn("w-6 h-6", isDragOver ? "text-amber-500" : "text-neutral-500")} />
-                                    )}
-                                    <p className="text-sm text-neutral-400">
-                                        {uploading ? (
-                                            "Uploading..."
-                                        ) : (
-                                            <>
-                                                Drop or <span className="text-amber-500 font-medium">upload</span>
-                                            </>
+                            {/* Breadcrumb Navigation (hidden when filtering) */}
+                            {!isFilterActive && (
+                                <div className="flex items-center gap-1 text-sm flex-wrap">
+                                    <button
+                                        onClick={navigateToRoot}
+                                        className={cn(
+                                            "flex items-center gap-1 px-2 py-1 rounded-md transition-colors",
+                                            currentFolder
+                                                ? "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800"
+                                                : "text-amber-400 bg-neutral-800/50",
                                         )}
-                                    </p>
+                                    >
+                                        <Home className="w-3.5 h-3.5" />
+                                        All Assets
+                                    </button>
+                                    {breadcrumbParts.map((part, i) => (
+                                        <div key={i} className="flex items-center gap-1">
+                                            <ChevronRight className="w-3.5 h-3.5 text-neutral-600" />
+                                            <button
+                                                onClick={() => navigateToBreadcrumb(i)}
+                                                className={cn(
+                                                    "px-2 py-1 rounded-md transition-colors",
+                                                    i === breadcrumbParts.length - 1
+                                                        ? "text-amber-400 bg-neutral-800/50"
+                                                        : "text-neutral-400 hover:text-amber-400 hover:bg-neutral-800",
+                                                )}
+                                            >
+                                                {part}
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
-                                <button
-                                    onClick={() => setCreatingFolder(true)}
-                                    className="flex flex-col items-center justify-center gap-1.5 px-5 py-6 rounded-lg border-2 border-dashed border-neutral-700 hover:border-amber-500 hover:bg-amber-500/5 transition-colors"
-                                    title="New Folder"
-                                >
-                                    <FolderPlus className="w-6 h-6 text-neutral-500" />
-                                    <span className="text-xs text-neutral-400">New Folder</span>
-                                </button>
-                            </div>
+                            )}
+
+                            {/* Upload Zone + New Folder (hidden when filtering) */}
+                            {!isFilterActive && (
+                                <div className="flex gap-3">
+                                    <div
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={handleDrop}
+                                        onClick={() => document.getElementById("file-upload")?.click()}
+                                        className={cn(
+                                            "flex-1 flex items-center justify-center gap-3 py-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer",
+                                            isDragOver
+                                                ? "border-amber-500 bg-amber-500/5"
+                                                : "border-neutral-700 hover:border-amber-500 hover:bg-amber-500/5",
+                                        )}
+                                    >
+                                        <input
+                                            id="file-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleFileSelect}
+                                        />
+                                        {uploading ? (
+                                            <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+                                        ) : (
+                                            <Upload className={cn("w-6 h-6", isDragOver ? "text-amber-500" : "text-neutral-500")} />
+                                        )}
+                                        <p className="text-sm text-neutral-400">
+                                            {uploading ? (
+                                                "Uploading..."
+                                            ) : (
+                                                <>
+                                                    Drop or <span className="text-amber-500 font-medium">upload</span>
+                                                </>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setCreatingFolder(true)}
+                                        className="flex flex-col items-center justify-center gap-1.5 px-5 py-6 rounded-lg border-2 border-dashed border-neutral-700 hover:border-amber-500 hover:bg-amber-500/5 transition-colors"
+                                        title="New Folder"
+                                    >
+                                        <FolderPlus className="w-6 h-6 text-neutral-500" />
+                                        <span className="text-xs text-neutral-400">New Folder</span>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Inline New Folder Input */}
                             {creatingFolder && (
@@ -630,18 +844,18 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                             )}
 
                             {/* Select All Bar (when assets exist) */}
-                            {assets.length > 0 && (
+                            {displayAssets.length > 0 && !isFilterActive && (
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={selectAll}
                                         className="flex items-center gap-1.5 px-2 py-1 text-xs rounded-md text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 transition-colors"
                                     >
-                                        {multiSelectedIds.size === assets.length ? (
+                                        {multiSelectedIds.size === displayAssets.length ? (
                                             <CheckSquare className="w-3.5 h-3.5 text-amber-500" />
                                         ) : (
                                             <Square className="w-3.5 h-3.5" />
                                         )}
-                                        {multiSelectedIds.size === assets.length ? "Deselect All" : "Select All"}
+                                        {multiSelectedIds.size === displayAssets.length ? "Deselect All" : "Select All"}
                                     </button>
                                     {isMultiSelectMode && (
                                         <span className="text-xs text-amber-400">
@@ -657,18 +871,18 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                                     <div className="flex justify-center py-12">
                                         <Loader2 className="w-8 h-8 text-neutral-500 animate-spin" />
                                     </div>
-                                ) : folders.length === 0 && assets.length === 0 ? (
+                                ) : (isFilterActive ? displayAssets.length === 0 : folders.length === 0 && displayAssets.length === 0) ? (
                                     <div className="flex flex-col items-center justify-center py-16 text-center">
                                         <ImageIcon className="w-12 h-12 text-neutral-600 mb-3" />
                                         <p className="text-neutral-500">
-                                            {currentFolder ? "This folder is empty." : "No assets found. Upload one to get started."}
+                                            {isFilterActive ? "No assets match your filters." : currentFolder ? "This folder is empty." : "No assets found. Upload one to get started."}
                                         </p>
                                     </div>
                                 ) : viewMode === "grid" ? (
                                     /* ─── Grid View ─── */
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                        {/* Folders first */}
-                                        {folders.map((folder) => (
+                                        {/* Folders first (hidden when filtering) */}
+                                        {!isFilterActive && folders.map((folder) => (
                                             <button
                                                 key={`folder-${folder.name}`}
                                                 onClick={() => navigateToFolder(folder.name)}
@@ -701,7 +915,7 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                                         ))}
 
                                         {/* Image assets */}
-                                        {assets.map((asset) => {
+                                        {displayAssets.map((asset) => {
                                             const isMultiSelected = multiSelectedIds.has(asset.id)
                                             return (
                                                 <button
@@ -781,8 +995,8 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                                 ) : (
                                     /* ─── List View ─── */
                                     <div className="space-y-1">
-                                        {/* Folders first */}
-                                        {folders.map((folder) => (
+                                        {/* Folders first (hidden when filtering) */}
+                                        {!isFilterActive && folders.map((folder) => (
                                             <button
                                                 key={`folder-${folder.name}`}
                                                 onClick={() => navigateToFolder(folder.name)}
@@ -815,7 +1029,7 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                                         ))}
 
                                         {/* Image assets */}
-                                        {assets.map((asset) => {
+                                        {displayAssets.map((asset) => {
                                             const isMultiSelected = multiSelectedIds.has(asset.id)
                                             return (
                                                 <button
@@ -903,8 +1117,9 @@ export function AssetPickerModal({ isOpen, onClose, onSelect }: AssetPickerModal
                 {!croppingAsset && (
                     <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-800 flex-shrink-0">
                         <p className="text-sm text-neutral-500">
-                            {folders.length > 0 && `${folders.length} folder${folders.length !== 1 ? "s" : ""}, `}
-                            {assets.length} asset{assets.length !== 1 ? "s" : ""}
+                            {!isFilterActive && folders.length > 0 && `${folders.length} folder${folders.length !== 1 ? "s" : ""}, `}
+                            {displayAssets.length} asset{displayAssets.length !== 1 ? "s" : ""}
+                            {isFilterActive && " (filtered)"}
                         </p>
                         <div className="flex items-center gap-2">
                             {isMultiSelectMode ? (
