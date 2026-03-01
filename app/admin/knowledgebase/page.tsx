@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, extractFromR2, type ResearchDoc } from "@/app/actions/knowledgebase"
-import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText, Zap, Save } from "lucide-react"
+import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText, Zap, Save, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +21,7 @@ export default function KnowledgebasePage() {
     const [extractingId, setExtractingId] = useState<string | null>(null)
     const [pendingToggles, setPendingToggles] = useState<Record<string, boolean>>({})
     const [isSavingActivations, setIsSavingActivations] = useState(false)
+    const [sortAsc, setSortAsc] = useState(false)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -190,18 +191,35 @@ export default function KnowledgebasePage() {
 
             <div className="flex gap-6 flex-1 min-h-0">
                 {/* LEFT COL: List of Sources */}
-                <div className="w-1/3 flex flex-col gap-4 overflow-y-auto pr-2">
+                <div className="w-1/3 flex flex-col gap-2 overflow-y-auto pr-2">
+                    {/* Sort toggle */}
+                    <button
+                        onClick={() => setSortAsc(prev => !prev)}
+                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors self-end px-2 py-1 rounded hover:bg-muted"
+                    >
+                        {sortAsc ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                        {sortAsc ? "Oldest first" : "Newest first"}
+                    </button>
+
                     {loading ? (
                         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-muted-foreground w-6 h-6" /></div>
                     ) : docs.length === 0 ? (
                         <div className="text-center py-10 border border-dashed border-border rounded-lg text-muted-foreground text-sm">
                             No sources added yet.
                         </div>
-                    ) : (
-                        docs.map(doc => (
+                    ) : (() => {
+                        const sorted = [...docs].sort((a, b) => {
+                            const timeA = new Date(a.created_at).getTime()
+                            const timeB = new Date(b.created_at).getTime()
+                            return sortAsc ? timeA - timeB : timeB - timeA
+                        })
+                        const activeDocs = sorted.filter(d => d.is_active)
+                        const inactiveDocs = sorted.filter(d => !d.is_active)
+
+                        const renderCard = (doc: ResearchDoc) => (
                             <Card
                                 key={doc.id}
-                                className={`cursor-pointer transition-all hover:border-primary/50 ${form?.id === doc.id ? "border-primary ring-1 ring-primary" : ""} ${!doc.is_active ? "opacity-50" : ""}`}
+                                className={`cursor-pointer transition-all hover:border-primary/50 ${form?.id === doc.id ? "border-primary ring-1 ring-primary" : ""} ${!doc.is_active ? "opacity-60" : ""}`}
                                 onClick={() => setForm(doc)}
                             >
                                 <CardContent className="p-4">
@@ -237,8 +255,40 @@ export default function KnowledgebasePage() {
                                     )}
                                 </CardContent>
                             </Card>
-                        ))
-                    )}
+                        )
+
+                        return (
+                            <>
+                                {/* Active Section */}
+                                <div className="flex items-center gap-2 mt-2 mb-1">
+                                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                                    <span className="text-xs font-semibold text-green-500 uppercase tracking-wider">Active ({activeDocs.length})</span>
+                                    <div className="flex-1 border-t border-green-500/20" />
+                                </div>
+                                {activeDocs.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground px-2 py-3">No active sources. Toggle a source on to activate it.</p>
+                                ) : (
+                                    <div className="flex flex-col gap-3 mb-4">
+                                        {activeDocs.map(renderCard)}
+                                    </div>
+                                )}
+
+                                {/* Inactive Section */}
+                                <div className="flex items-center gap-2 mt-2 mb-1">
+                                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Inactive ({inactiveDocs.length})</span>
+                                    <div className="flex-1 border-t border-border" />
+                                </div>
+                                {inactiveDocs.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground px-2 py-3">All sources are active.</p>
+                                ) : (
+                                    <div className="flex flex-col gap-3">
+                                        {inactiveDocs.map(renderCard)}
+                                    </div>
+                                )}
+                            </>
+                        )
+                    })()}
                 </div>
 
                 {/* RIGHT COL: Editor */}
