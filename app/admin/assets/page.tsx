@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset } from "@/app/actions/assets"
-import { Loader2, ImageIcon, Search, Check, Star, Upload } from "lucide-react"
+import { getAllLibraryAssets, updateAssetDescription, toggleAssetStar, uploadHashedAsset, deleteAsset } from "@/app/actions/assets"
+import { Loader2, ImageIcon, Search, Check, Star, Upload, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -40,6 +40,12 @@ export default function AssetsLibraryPage() {
         // Optimistic update
         setAssets(prev => prev.map(a => a.id === id ? { ...a, is_starred: !currentlyStarred } : a))
         await toggleAssetStar(id, !currentlyStarred)
+    }
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Delete this asset? This action can't be undone.")) return
+        setAssets(prev => prev.filter(a => a.id !== id))
+        await deleteAsset(id)
     }
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +225,14 @@ export default function AssetsLibraryPage() {
                                         }}
                                     />
                                 </div>
-                                <div className="flex justify-end text-[10px] text-muted-foreground h-4">
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground h-6">
+                                    <button
+                                        onClick={() => handleDelete(asset.id)}
+                                        className="p-1 rounded-md text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                        title="Delete asset"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                     {savingId === asset.id && <span className="text-primary flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
                                 </div>
                             </div>
