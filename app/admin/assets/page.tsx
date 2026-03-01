@@ -32,6 +32,7 @@ export default function AssetsLibraryPage() {
     const [showExcludeDropdown, setShowExcludeDropdown] = useState(false)
     const includeRef = useRef<HTMLDivElement>(null)
     const excludeRef = useRef<HTMLDivElement>(null)
+    const [showAllTags, setShowAllTags] = useState(false)
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -154,6 +155,10 @@ export default function AssetsLibraryPage() {
     })
 
     const starredCount = assets.filter(a => a.is_starred).length
+
+    const TAG_CHIP_LIMIT = 20
+    const visibleChipTags = showAllTags ? allTags : allTags.slice(0, TAG_CHIP_LIMIT)
+    const hasMoreTags = allTags.length > TAG_CHIP_LIMIT
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -357,6 +362,54 @@ export default function AssetsLibraryPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Quick tag chips */}
+            {allTags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                    {visibleChipTags.map(tag => {
+                        const isActive = includeTags.includes(tag.id)
+                        return (
+                            <button
+                                key={tag.id}
+                                onClick={() => {
+                                    setIncludeTags(prev =>
+                                        isActive ? prev.filter(t => t !== tag.id) : [...prev, tag.id]
+                                    )
+                                }}
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all border",
+                                    isActive
+                                        ? "text-white border-transparent shadow-sm"
+                                        : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                                )}
+                                style={isActive ? { backgroundColor: tag.color, borderColor: tag.color } : undefined}
+                            >
+                                <div
+                                    className={cn("w-2.5 h-2.5 rounded-full shrink-0", isActive && "bg-white/30")}
+                                    style={!isActive ? { backgroundColor: tag.color } : undefined}
+                                />
+                                {tag.name}
+                            </button>
+                        )
+                    })}
+                    {hasMoreTags && (
+                        <button
+                            onClick={() => setShowAllTags(v => !v)}
+                            className="text-xs text-primary hover:text-primary/80 font-medium px-2 py-1 transition-colors"
+                        >
+                            {showAllTags ? "Show less" : `+${allTags.length - TAG_CHIP_LIMIT} more`}
+                        </button>
+                    )}
+                    {includeTags.length > 0 && (
+                        <button
+                            onClick={() => setIncludeTags([])}
+                            className="text-xs text-red-400 hover:text-red-300 font-medium px-2 py-1 transition-colors flex items-center gap-1"
+                        >
+                            <X className="w-3 h-3" /> Clear
+                        </button>
+                    )}
+                </div>
+            )}
 
             {loading ? (
                 <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>

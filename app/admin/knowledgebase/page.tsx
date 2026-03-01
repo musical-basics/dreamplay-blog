@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { getKnowledgebase, saveResearchDoc, toggleResearchStatus, deleteResearchDoc, extractPdf, extractFromR2, type ResearchDoc } from "@/app/actions/knowledgebase"
-import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText, Zap } from "lucide-react"
+import { BookOpen, UploadCloud, Loader2, Plus, Trash2, X, CheckCircle2, ExternalLink, FileText, Zap, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,6 +19,8 @@ export default function KnowledgebasePage() {
     const [isSaving, setIsSaving] = useState(false)
     const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
     const [extractingId, setExtractingId] = useState<string | null>(null)
+    const [pendingToggles, setPendingToggles] = useState<Record<string, boolean>>({})
+    const [isSavingActivations, setIsSavingActivations] = useState(false)
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -106,7 +108,6 @@ export default function KnowledgebasePage() {
             if (result.error) throw new Error(result.error)
             setStatusMessage({ type: 'success', text: 'PDF extracted and saved to knowledgebase!' })
             fetchDocs()
-            // Refresh the form if this entry is currently selected
             if (form?.id === id) {
                 const updated = (await getKnowledgebase()).find(d => d.id === id)
                 if (updated) setForm(updated)
@@ -118,6 +119,36 @@ export default function KnowledgebasePage() {
             setExtractingId(null)
         }
     }
+
+    // Toggle activation in local state only (no DB call)
+    const handleLocalToggle = (docId: string, newVal: boolean) => {
+        setDocs(prev => prev.map(d => d.id === docId ? { ...d, is_active: newVal } : d))
+        setPendingToggles(prev => ({ ...prev, [docId]: newVal }))
+        // Also update form if this doc is selected
+        if (form?.id === docId) {
+            setForm(prev => prev ? { ...prev, is_active: newVal } : prev)
+        }
+    }
+
+    // Batch save all pending activation changes
+    const handleSaveActivations = async () => {
+        const entries = Object.entries(pendingToggles)
+        if (entries.length === 0) return
+
+        setIsSavingActivations(true)
+        try {
+            await Promise.all(entries.map(([id, val]) => toggleResearchStatus(id, val)))
+            setPendingToggles({})
+            setStatusMessage({ type: 'success', text: `Saved activation for ${entries.length} source(s).` })
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Unknown error"
+            setStatusMessage({ type: 'error', text: `Failed to save activations: ${message}` })
+        } finally {
+            setIsSavingActivations(false)
+        }
+    }
+
+    const hasPendingToggles = Object.keys(pendingToggles).length > 0
 
     return (
         <div className="p-6 max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col">
@@ -139,9 +170,22 @@ export default function KnowledgebasePage() {
                     </h1>
                     <p className="text-muted-foreground mt-1 text-sm">Upload research PDFs to train your AI Blog Writer with hard facts.</p>
                 </div>
-                <Button onClick={() => setForm({ title: "", author: "", year: "", url: "", content: "", is_active: true })} className="gap-2">
-                    <Plus className="w-4 h-4" /> Add Source
-                </Button>
+                <div className="flex items-center gap-2">
+                    {hasPendingToggles && (
+                        <Button
+                            onClick={handleSaveActivations}
+                            disabled={isSavingActivations}
+                            variant="outline"
+                            className="gap-2 border-green-500/30 text-green-500 hover:bg-green-500/10"
+                        >
+                            {isSavingActivations ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Save Activations ({Object.keys(pendingToggles).length})
+                        </Button>
+                    )}
+                    <Button onClick={() => setForm({ title: "", author: "", year: "", url: "", content: "", is_active: true })} className="gap-2">
+                        <Plus className="w-4 h-4" /> Add Source
+                    </Button>
+                </div>
             </div>
 
             <div className="flex gap-6 flex-1 min-h-0">
@@ -165,10 +209,7 @@ export default function KnowledgebasePage() {
                                         <h3 className="font-semibold text-sm line-clamp-2">{doc.title}</h3>
                                         <Switch
                                             checked={doc.is_active}
-                                            onCheckedChange={async (val) => {
-                                                await toggleResearchStatus(doc.id, val)
-                                                fetchDocs()
-                                            }}
+                                            onCheckedChange={(val) => handleLocalToggle(doc.id, val)}
                                             onClick={e => e.stopPropagation()}
                                         />
                                     </div>
@@ -222,6 +263,17 @@ export default function KnowledgebasePage() {
                                         >
                                             {extractingId === form.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                                             {extractingId === form.id ? "Extracting..." : "Extract Now"}
+                                        </Button>
+                                    )}
+                                    {form.id && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleLocalToggle(form.id!, !form.is_active)}
+                                            className={`gap-1 ${form.is_active ? 'text-green-500 border-green-500/30 hover:bg-green-500/10' : 'text-muted-foreground border-border hover:bg-muted'}`}
+                                        >
+                                            <Switch checked={form.is_active ?? false} className="scale-75" />
+                                            {form.is_active ? "Active" : "Inactive"}
                                         </Button>
                                     )}
                                     <Button onClick={handleSave} disabled={isSaving || isConverting || !form.title || !form.content} size="sm">
