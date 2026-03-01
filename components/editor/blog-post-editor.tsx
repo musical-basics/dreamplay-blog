@@ -73,11 +73,59 @@ export function BlogPostEditor({
     const [restoringId, setRestoringId] = useState<string | null>(null)
     const historyRef = useRef<HTMLDivElement>(null)
 
+    // ─── Auto-Save ───
+    const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const autoSavePendingRef = useRef(false)
+
     const fetchBackups = useCallback(async () => {
         if (!postId) return
         const data = await getPostBackups(postId)
         setBackups(data)
     }, [postId])
+
+    const triggerAutoSave = useCallback(async () => {
+        if (!onSave) return
+        setSaveStatus('saving')
+        await Promise.resolve(onSave())
+        await fetchBackups()
+        setSaveStatus('success')
+        toast({ title: "Auto-saved", description: "Your changes have been saved automatically.", duration: 2000 })
+        setTimeout(() => setSaveStatus('idle'), 2000)
+    }, [onSave, fetchBackups, toast])
+
+    // Manual edit: start a 1-minute debounce on the FIRST edit only
+    const handleManualHtmlChange = useCallback((newHtml: string) => {
+        onHtmlChange(newHtml)
+        if (!autoSavePendingRef.current && postId) {
+            autoSavePendingRef.current = true
+            autoSaveTimerRef.current = setTimeout(() => {
+                autoSavePendingRef.current = false
+                triggerAutoSave()
+            }, 60_000) // 1 minute
+        }
+    }, [onHtmlChange, postId, triggerAutoSave])
+
+    // AI response: save immediately
+    const handleAiHtmlChange = useCallback((newHtml: string, prompt?: string) => {
+        onHtmlChange(newHtml)
+        // Clear any pending manual-edit timer (AI save supersedes)
+        if (autoSaveTimerRef.current) {
+            clearTimeout(autoSaveTimerRef.current)
+            autoSaveTimerRef.current = null
+            autoSavePendingRef.current = false
+        }
+        if (postId) {
+            // Small delay to let React state settle before saving
+            setTimeout(() => triggerAutoSave(), 300)
+        }
+    }, [onHtmlChange, postId, triggerAutoSave])
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+        }
+    }, [])
 
     useEffect(() => {
         fetchBackups()
@@ -197,7 +245,7 @@ export function BlogPostEditor({
                 {/* Center Left - Code Pane */}
                 <Panel defaultSize={30} minSize={20} className="bg-background border-r border-border">
                     <div className="h-full overflow-hidden">
-                        <CodePane code={html} onChange={onHtmlChange} className="h-full" />
+                        <CodePane code={html} onChange={handleManualHtmlChange} className="h-full" />
                     </div>
                 </Panel>
 
@@ -388,7 +436,7 @@ export function BlogPostEditor({
                     )}
                 >
                     <div className="h-full overflow-hidden">
-                        <CopilotPane html={html} onHtmlChange={onHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} thumbnail={thumbnail} onThumbnailChange={onThumbnailChange} />
+                        <CopilotPane html={html} onHtmlChange={handleAiHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} thumbnail={thumbnail} onThumbnailChange={onThumbnailChange} />
                     </div>
                 </Panel>
             </PanelGroup>
