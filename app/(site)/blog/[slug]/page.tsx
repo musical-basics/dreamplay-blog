@@ -52,7 +52,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
             {/* Blog Content (sandboxed in iframe to prevent style leakage) */}
             <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12">
-                <div className="rounded-none border border-white/10 bg-white p-2 md:p-8 shadow-2xl">
+                <div className="rounded-none border border-white/10 bg-white shadow-2xl overflow-hidden">
                     <BlogContentFrame html={renderedContent} />
                 </div>
             </main>
