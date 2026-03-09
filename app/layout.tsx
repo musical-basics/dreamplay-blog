@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Cormorant_Garamond, Manrope } from "next/font/google
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/toaster"
 import { EmailTracker } from "@/components/EmailTracker"
+import { AnalyticsTracker } from "@/components/AnalyticsTracker"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${manrope.variable} font-sans antialiased`}>
         {children}
         <EmailTracker />
+        <AnalyticsTracker />
         <Toaster />
         <Analytics />
       </body>
