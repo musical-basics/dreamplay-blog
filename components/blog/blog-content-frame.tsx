@@ -75,8 +75,8 @@ document.addEventListener('click', function(e) {
 
 // ── Sticky Position Fix ──
 // Auto-sized iframes have no internal scroll, so position:sticky
-// has no scrolling ancestor. This finds all sticky elements and
-// converts them to JS-driven absolute positioning.
+// has no scrolling ancestor. This keeps elements in the flow
+// (position:relative) and uses translateY to simulate sticky.
 (function() {
     var scrollTarget = window;
     try { if (window.parent && window.parent !== window) scrollTarget = window.parent; } catch(e) {}
@@ -91,13 +91,20 @@ document.addEventListener('click', function(e) {
             var el = allEls[i];
             var stickyTop = parseInt(style.top, 10) || 0;
             var parent = el.parentElement;
-            // Convert to absolute positioning
-            if (parent) parent.style.position = 'relative';
-            el.style.position = 'absolute';
-            el.style.top = '0';
+            // Keep in flow: use relative, not absolute
+            el.style.position = 'relative';
+            el.style.top = 'auto';
             el.style.transition = 'transform 0.12s ease-out';
             el.style.willChange = 'transform';
-            stickyEls.push({ el: el, parent: parent, gap: stickyTop });
+            // Record original offset from parent top
+            var elRect = el.getBoundingClientRect();
+            var parentRect = parent ? parent.getBoundingClientRect() : elRect;
+            stickyEls.push({
+                el: el,
+                parent: parent,
+                gap: stickyTop,
+                naturalOffset: elRect.top - parentRect.top
+            });
         }
     }
     if (stickyEls.length === 0) return;
@@ -111,20 +118,30 @@ document.addEventListener('click', function(e) {
 
         for (var i = 0; i < stickyEls.length; i++) {
             var s = stickyEls[i];
+            if (!s.parent) continue;
             var parentRect = s.parent.getBoundingClientRect();
             var parentTop = parentRect.top + scrollY;
+
+            // Where the element naturally sits (absolute doc coords)
+            var naturalTop = parentTop + s.naturalOffset;
+            // Where we want it (viewport-relative with gap)
             var desiredTop = scrollY + s.gap;
-            var navH = s.el.offsetHeight;
-            var maxTop = parentRect.height - navH;
-            var relTop = desiredTop - parentTop;
-            relTop = Math.max(0, Math.min(relTop, maxTop));
-            s.el.style.transform = 'translateY(' + relTop + 'px)';
+
+            // Only translate if scrolled past the natural position
+            var translateY = 0;
+            if (desiredTop > naturalTop) {
+                translateY = desiredTop - naturalTop;
+                // Don't let it go past parent bottom
+                var maxTranslate = parentRect.height - s.naturalOffset - s.el.offsetHeight;
+                if (translateY > maxTranslate) translateY = Math.max(0, maxTranslate);
+            }
+
+            s.el.style.transform = 'translateY(' + translateY + 'px)';
         }
     }
 
     scrollTarget.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
-    // Wait for layout to settle before initial positioning
     setTimeout(onScroll, 100);
 })();
 <\/script>`
