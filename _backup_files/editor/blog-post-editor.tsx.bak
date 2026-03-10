@@ -4,13 +4,14 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react"
 import { AssetLoader } from "./asset-loader"
 import { CodePane } from "./code-pane"
 import { PreviewPane } from "./preview-pane"
+import { CopilotPane } from "./copilot-pane"
 import { renderTemplate } from "@/lib/render-template"
-import { Monitor, Smartphone, Loader2, Check, ArrowLeft, History, Send } from "lucide-react"
+import { Monitor, Smartphone, Loader2, Check, PanelRightClose, PanelRightOpen, ArrowLeft, History, Globe, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
+import { Panel, PanelGroup, PanelResizeHandle, ImperativePanelHandle } from "react-resizable-panels"
 import { getPostBackups } from "@/app/actions/posts"
 import { formatDistanceToNow } from "date-fns"
 
@@ -34,9 +35,6 @@ interface BlogPostEditorProps {
     onRestore?: (backup: { html_content: string; variable_values: Record<string, any> }) => void
     thumbnail?: string | null
     onThumbnailChange?: (thumbnail: string | null) => void
-    // Keep html_content and variable_values for backwards compat with editor page
-    html_content?: string
-    variable_values?: Record<string, any>
 }
 
 export function BlogPostEditor({
@@ -63,6 +61,8 @@ export function BlogPostEditor({
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
     const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'success'>('idle')
+    const [isCopilotOpen, setIsCopilotOpen] = useState(true)
+    const copilotRef = useRef<ImperativePanelHandle>(null)
     const searchParams = useSearchParams()
     const currentId = searchParams.get("id")
     const { toast } = useToast()
@@ -73,7 +73,7 @@ export function BlogPostEditor({
     const [restoringId, setRestoringId] = useState<string | null>(null)
     const historyRef = useRef<HTMLDivElement>(null)
 
-    // ─── Auto-Save (1 min debounce on manual edits) ───
+    // ─── Auto-Save ───
     const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const autoSavePendingRef = useRef(false)
 
@@ -93,7 +93,8 @@ export function BlogPostEditor({
         setTimeout(() => setSaveStatus('idle'), 2000)
     }, [onSave, fetchBackups, toast])
 
-    const handleHtmlChange = useCallback((newHtml: string) => {
+    // Manual edit: start a 1-minute debounce on the FIRST edit only
+    const handleManualHtmlChange = useCallback((newHtml: string) => {
         onHtmlChange(newHtml)
         if (!autoSavePendingRef.current && postId) {
             autoSavePendingRef.current = true
@@ -101,6 +102,21 @@ export function BlogPostEditor({
                 autoSavePendingRef.current = false
                 triggerAutoSave()
             }, 60_000) // 1 minute
+        }
+    }, [onHtmlChange, postId, triggerAutoSave])
+
+    // AI response: save immediately
+    const handleAiHtmlChange = useCallback((newHtml: string, prompt?: string) => {
+        onHtmlChange(newHtml)
+        // Clear any pending manual-edit timer (AI save supersedes)
+        if (autoSaveTimerRef.current) {
+            clearTimeout(autoSaveTimerRef.current)
+            autoSaveTimerRef.current = null
+            autoSavePendingRef.current = false
+        }
+        if (postId) {
+            // Small delay to let React state settle before saving
+            setTimeout(() => triggerAutoSave(), 300)
         }
     }, [onHtmlChange, postId, triggerAutoSave])
 
@@ -160,6 +176,17 @@ export function BlogPostEditor({
         setTimeout(() => setPublishStatus('idle'), 2000)
     }
 
+    const toggleCopilot = () => {
+        const panel = copilotRef.current
+        if (panel) {
+            if (isCopilotOpen) {
+                panel.collapse()
+            } else {
+                panel.expand()
+            }
+        }
+    }
+
     return (
         <div className="h-screen bg-background text-foreground overflow-hidden">
             <PanelGroup direction="horizontal">
@@ -215,17 +242,17 @@ export function BlogPostEditor({
 
                 <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors" />
 
-                {/* Center - Code Pane */}
-                <Panel defaultSize={40} minSize={25} className="bg-background border-r border-border">
+                {/* Center Left - Code Pane */}
+                <Panel defaultSize={30} minSize={20} className="bg-background border-r border-border">
                     <div className="h-full overflow-hidden">
-                        <CodePane code={html} onChange={handleHtmlChange} className="h-full" />
+                        <CodePane code={html} onChange={handleManualHtmlChange} className="h-full" />
                     </div>
                 </Panel>
 
                 <PanelResizeHandle className="w-1 bg-border hover:bg-primary/20 transition-colors" />
 
-                {/* Right - Preview Pane */}
-                <Panel defaultSize={45} minSize={30} className="bg-background flex flex-col">
+                {/* Center Right - Preview Pane */}
+                <Panel defaultSize={35} minSize={25} className="bg-background flex flex-col">
                     <div className="h-full flex flex-col overflow-hidden">
                         <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-card flex-shrink-0">
                             <h2 className="text-sm font-semibold">Preview</h2>
@@ -366,6 +393,20 @@ export function BlogPostEditor({
                                         )}
                                     </div>
                                 )}
+
+                                {/* Copilot Toggle */}
+                                <button
+                                    onClick={toggleCopilot}
+                                    className={cn(
+                                        "p-2 rounded-md transition-all text-sm font-medium border ml-2",
+                                        isCopilotOpen
+                                            ? "bg-muted text-muted-foreground hover:text-foreground border-transparent"
+                                            : "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                                    )}
+                                    title={isCopilotOpen ? "Hide Copilot" : "Show Copilot"}
+                                >
+                                    {isCopilotOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                                </button>
                             </div>
                         </div>
 
@@ -374,6 +415,28 @@ export function BlogPostEditor({
                                 <PreviewPane html={previewHtml} viewMode={viewMode} />
                             </div>
                         </div>
+                    </div>
+                </Panel>
+
+                <PanelResizeHandle className={cn("w-1 bg-border hover:bg-primary/20 transition-colors", !isCopilotOpen && "hidden")} />
+
+                {/* Right Sidebar - Copilot */}
+                <Panel
+                    ref={copilotRef}
+                    defaultSize={20}
+                    minSize={15}
+                    maxSize={30}
+                    collapsible={true}
+                    collapsedSize={0}
+                    onCollapse={() => setIsCopilotOpen(false)}
+                    onExpand={() => setIsCopilotOpen(true)}
+                    className={cn(
+                        "bg-card border-l border-border transition-all duration-300 ease-in-out",
+                        !isCopilotOpen && "border-none"
+                    )}
+                >
+                    <div className="h-full overflow-hidden">
+                        <CopilotPane html={html} onHtmlChange={handleAiHtmlChange} postId={postId} assets={assets} onAssetsChange={onAssetsChange} thumbnail={thumbnail} onThumbnailChange={onThumbnailChange} />
                     </div>
                 </Panel>
             </PanelGroup>

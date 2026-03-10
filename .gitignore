@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# research (keep JSON/MD indexes, ignore raw PDFs and chart images)
+/research/*.pdf
+/research/charts/*.png
+/research/charts/*.jpg
+/research/charts/*.jpeg
+/research/charts/*.webp
+
+# repomix
+repomix-*.xml
+!repomix.config.*
