@@ -105,21 +105,41 @@ export function BlogTimeline({ html, iframeRef }: BlogTimelineProps) {
         (e: React.MouseEvent, sectionId: string) => {
             e.preventDefault()
             const iframe = iframeRef.current
-            if (!iframe) return
+            if (!iframe) {
+                console.warn("[BlogTimeline] No iframe ref")
+                return
+            }
 
             try {
                 const iframeDoc = iframe.contentDocument
-                if (!iframeDoc) return
+                if (!iframeDoc) {
+                    console.warn("[BlogTimeline] contentDocument is null")
+                    return
+                }
                 const el = iframeDoc.getElementById(sectionId)
-                if (!el) return
+                if (!el) {
+                    console.warn("[BlogTimeline] Element not found:", sectionId)
+                    return
+                }
 
+                // Calculate element's absolute offset within the iframe using offsetTop chain
+                let offsetY = 0
+                let current: HTMLElement | null = el
+                while (current) {
+                    offsetY += current.offsetTop
+                    current = current.offsetParent as HTMLElement | null
+                }
+
+                // The iframe's top in the page = its offsetTop from the page
                 const iframeRect = iframe.getBoundingClientRect()
-                const elTop = el.getBoundingClientRect().top
-                const scrollTarget = window.scrollY + iframeRect.top + elTop - 80
+                const iframePageTop = window.scrollY + iframeRect.top
+
+                // Scroll parent to: iframe top + element offset within iframe - some padding
+                const scrollTarget = iframePageTop + offsetY - 80
 
                 window.scrollTo({ top: scrollTarget, behavior: "smooth" })
-            } catch {
-                // Fallback
+            } catch (err) {
+                console.error("[BlogTimeline] Click scroll error:", err)
             }
         },
         [iframeRef]
@@ -145,16 +165,16 @@ export function BlogTimeline({ html, iframeRef }: BlogTimelineProps) {
                             {/* Dot */}
                             <span
                                 className={`absolute left-[1px] top-[11px] w-[9px] h-[9px] rounded-full border-2 border-[#0a0a0f] transition-all duration-300 ${activeId === section.id
-                                        ? "bg-amber-500 shadow-[0_0_0_2px_rgba(184,150,62,0.15)]"
-                                        : "bg-white/10"
+                                    ? "bg-amber-500 shadow-[0_0_0_2px_rgba(184,150,62,0.15)]"
+                                    : "bg-white/10"
                                     }`}
                             />
                             <a
                                 href={`#${section.id}`}
                                 onClick={(e) => handleClick(e, section.id)}
                                 className={`block text-[12px] leading-snug py-[5px] px-[10px] rounded transition-all duration-200 no-underline ${activeId === section.id
-                                        ? "text-amber-400 font-semibold"
-                                        : "text-white/35 hover:text-white/70 hover:bg-white/5"
+                                    ? "text-amber-400 font-semibold"
+                                    : "text-white/35 hover:text-white/70 hover:bg-white/5"
                                     }`}
                             >
                                 {section.title}

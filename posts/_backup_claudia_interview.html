@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"The DS 6.0 Saved My Career" — An Interview with Claudia, Classical Pianist</title>
+    <meta name="description"
+        content="Claudia, a classical pianist at SMU, shares how the DS 6.0 reduced-size piano keyboard saved her from career-ending injury and transformed her approach to the instrument.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #faf8f4;
+            --bg-white: #ffffff;
+            --surface: #f3f0ea;
+            --surface-warm: #f7f4ee;
+            --border: #e5e0d5;
+            --border-light: #ece8e0;
+            --text: #111111;
+            --text-body: #1a1a1a;
+            --text-muted: #4a4540;
+            --text-dim: #7a746c;
+            --gold: #b8963e;
+            --gold-light: #d4af5a;
+            --gold-dark: #8c6e2a;
+            --gold-bg: rgba(184, 150, 62, 0.06);
+            --gold-border: rgba(184, 150, 62, 0.2);
+            --claudia: #8c6e2a;
+            --claudia-bg: rgba(184, 150, 62, 0.05);
+            --claudia-border: rgba(184, 150, 62, 0.25);
+            --lionel: #3a3a3a;
+            --lionel-bg: rgba(0, 0, 0, 0.02);
+            --lionel-border: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 20px;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: var(--bg);
+            color: var(--text-body);
+            line-height: 1.85;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ───────── Hero ───────── */
+        .hero {
+            position: relative;
+            padding: 100px 24px 64px;
+            text-align: left;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(2.2rem, 5vw, 3rem);
+            font-weight: 900;
+            line-height: 1.15;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        .hero-subtitle {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.15rem;
+            font-style: italic;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 36px;
+        }
+
+        .hero-divider {
+            width: 48px;
+            height: 2px;
+            background: var(--gold);
+            margin-bottom: 24px;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* ───────── Layout ───────── */
+        .layout {
+            display: flex;
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 24px;
+            gap: 64px;
+        }
+
+        .content {
+            flex: 1;
+            max-width: 720px;
+            padding-bottom: 100px;
+        }
+
+        /* ───────── Floating Timeline ───────── */
+        .timeline-nav {
+            position: sticky;
+            top: 40px;
+            width: 220px;
+            flex-shrink: 0;
+            align-self: flex-start;
+            padding: 24px 0;
+        }
+
+        .timeline-nav h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+
+        .timeline-nav ol {
+            list-style: none;
+            position: relative;
+        }
+
+        .timeline-nav ol::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 4px;
+            bottom: 4px;
+            width: 1px;
+            background: var(--border);
+        }
+
+        .timeline-nav li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-nav li::before {
+            content: '';
+            position: absolute;
+            left: 1px;
+            top: 11px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--border);
+            border: 2px solid var(--bg);
+            transition: all 0.3s;
+        }
+
+        .timeline-nav a {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.74rem;
+            line-height: 1.5;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .timeline-nav a:hover {
+            color: var(--text);
+            background: var(--surface);
+        }
+
+        .timeline-nav li.active::before {
+            background: var(--gold);
+            box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.15);
+        }
+
+        .timeline-nav li.active a {
+            color: var(--gold-dark);
+            font-weight: 600;
+        }
+
+        /* ───────── Sections ───────── */
+        .section {
+            margin-bottom: 56px;
+        }
+
+        .section-header {
+            margin-bottom: 28px;
+        }
+
+        .section h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .section-number {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* ───────── Intro Section ───────── */
+        .intro {
+            font-size: 1.15rem;
+            color: var(--text-body);
+            margin-bottom: 56px;
+            padding-bottom: 48px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .intro p {
+            margin-bottom: 18px;
+        }
+
+        .intro strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .intro a {
+            color: var(--gold-dark);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--gold-border);
+        }
+
+        .intro-profiles {
+            display: flex;
+            gap: 20px;
+            margin: 32px 0;
+            flex-wrap: wrap;
+        }
+
+        .profile-card {
+            flex: 1;
+            min-width: 240px;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-white);
+        }
+
+        .profile-card h4 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .profile-card.claudia h4 {
+            color: var(--gold-dark);
+        }
+
+        .profile-card p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.65;
+        }
+
+        /* ───────── Q&A Blocks ───────── */
+        .qa-block {
+            margin-bottom: 36px;
+        }
+
+        .question {
+            padding: 20px 24px;
+            background: var(--lionel-bg);
+            border-left: 2px solid var(--lionel-border);
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 12px;
+        }
+
+        .answer {
+            padding: 20px 24px;
+            background: var(--claudia-bg);
+            border-left: 2px solid var(--claudia-border);
+            border-radius: 0 6px 6px 0;
+        }
+
+        .speaker-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .question .speaker-label {
+            color: var(--lionel);
+        }
+
+        .answer .speaker-label {
+            color: var(--gold-dark);
+        }
+
+        .question p,
+        .answer p {
+            font-size: 1.1rem;
+            color: var(--text-body);
+            line-height: 1.85;
+            margin: 0;
+        }
+
+        .answer strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .highlight-quote {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold-dark);
+            line-height: 1.6;
+        }
+
+        /* ───────── Callout ───────── */
+        .callout {
+            margin: 52px 0;
+            padding: 36px 32px;
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--gold);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .callout blockquote {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.35rem;
+            font-style: italic;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .callout cite {
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gold);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ───────── Closing Section ───────── */
+        .closing {
+            padding-top: 48px;
+            border-top: 1px solid var(--border);
+        }
+
+        .closing h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        .closing p {
+            margin-bottom: 16px;
+            color: var(--text-body);
+            font-size: 1.12rem;
+        }
+
+        .closing strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .key-takeaways {
+            margin: 36px 0;
+            padding: 28px;
+            background: var(--bg-white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .key-takeaways h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 18px;
+        }
+
+        .key-takeaways ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .key-takeaways li {
+            padding: 7px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+        }
+
+        .key-takeaways li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+
+        /* ───────── Footer ───────── */
+        .footer {
+            text-align: center;
+            padding: 48px 24px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a {
+            color: var(--gold-dark);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: var(--gold-border);
+        }
+
+        /* ───────── Responsive ───────── */
+        @media (max-width: 900px) {
+            .timeline-nav {
+                display: none;
+            }
+
+            .layout {
+                padding: 0 16px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero {
+                padding: 64px 16px 40px;
+            }
+
+            .intro-profiles {
+                flex-direction: column;
+            }
+
+            .question,
+            .answer {
+                padding: 16px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <header class="hero">
+        <span class="hero-tag">An Interview with Claudia</span>
+        <h1>"The DS 6.0 Was Truly Life-Changing for Me."</h1>
+        <p class="hero-subtitle">
+            Then I discovered what a piano should feel like.
+        </p>
+        <div class="hero-divider"></div>
+        <div class="hero-meta">
+            <span>10 min read</span>
+            <span>·</span>
+            <span>February 2026</span>
+        </div>
+    </header>
+
+    <div class="layout">
+
+        <!-- ═══════ MAIN CONTENT ═══════ -->
+        <main class="content">
+
+            <!-- ── Introduction ── -->
+            <div class="intro" id="intro">
+                <p>
+                    When most people think about pianos, they picture a single, universal instrument: one size, one
+                    standard.
+                    But for the roughly <strong>50% of pianists whose hands fall below the average span</strong>, that
+                    "standard" can be a source
+                    of chronic pain, limited repertoire, and in some cases, career-ending injury.
+                </p>
+                <p>
+                    <strong>Claudia</strong> is one of those pianists. A classical pianist pursuing her Master's degree
+                    at Southern Methodist University (SMU)
+                    in Dallas, Texas, Claudia developed tendonitis and a ganglion cyst from years of overstretching on a
+                    standard-sized keyboard,
+                    ultimately requiring surgery on her wrist. It wasn't until she discovered the <strong>DS 6.0
+                        piano</strong>, a keyboard with slightly
+                    narrower keys designed for smaller hands, that her relationship with the instrument fundamentally
+                    changed.
+                </p>
+                <p>
+                    In this interview, Claudia sat down with <strong>Lionel Yu</strong>, founder of <strong>DreamPlay
+                        Pianos</strong>,
+                    to share her journey, from injury to recovery, from limitation to liberation, and why she believes
+                    alternative-sized keyboards should be available to every pianist.
+                </p>
+
+                <div class="intro-profiles">
+                    <div class="profile-card claudia">
+                        <h4>Claudia</h4>
+                        <p>Classical pianist, Master's student at SMU. Hand span: ~7.2 inches. Plays on a DS 6.0 grand
+                            piano under the mentorship of Dr. Leone.</p>
+                    </div>
+                    <div class="profile-card">
+                        <h4>Lionel Yu</h4>
+                        <p>Founder of DreamPlay Pianos. Pianist with 30 years of experience. Hand span: 8.0 inches.
+                            Building affordable DS 6.0 and DS 5.5 keyboards.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 1 ═══════ -->
+            <div class="section" id="q1">
+                <div class="section-header">
+                    <span class="section-number">The Beginning</span>
+                    <h2>Discovering the DS 6.0</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>What was your initial reaction when you first found out there was a DS 6.0 grand piano at
+                            your college? Did you know about it before enrolling, or did you discover it after?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>I actually didn't know until I came here to study with Dr. Leone. So I was very lucky because
+                            I have very, very small hands and I actually got injured first. I got tendonitis because I
+                            was overstretching and playing octaves, a lot of big, stretchy chords. I got a ganglion cyst
+                            because of the tendonitis, so I had to basically have it surgically removed. I did surgery
+                            on my wrist. It was a really bad injury.</p>
+                        <p style="margin-top: 12px;">So I was very lucky that I had access to the 6.0. Dr. Leone, after
+                            I told her about my injury, showed me everything about this keyboard and I was basically
+                            playing everything on the 6.0 since.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 2 ═══════ -->
+            <div class="section" id="q2">
+                <div class="section-header">
+                    <span class="section-number">First Impressions</span>
+                    <h2>First Time Playing the DS 6.0</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>What happened when you first touched the DS 6.0? What was your initial reaction, and how did
+                            that eventually evolve into an overall altered view towards the piano?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>When I first heard of this concept, it's just a new concept and nobody has done it before.
+                            I've tried it and it's super easy to adjust from the standard to the 6.0. One of the reasons
+                            people are not accepting the idea of a narrower keyboard is because they think it's
+                            "cheating," and people are worried that it might be difficult to switch back and forth.
+                            <strong>But it was very easy for me to adjust, and it just felt overall very, very
+                                comfortable.</strong>
+                        </p>
+                        <p style="margin-top: 12px;">When I was playing the standard, I would be holding a lot of
+                            tension in my hands. That's also one of the reasons that caused the tendonitis. When I'm on
+                            the 6.0, I think I just learned a lot of the techniques that I was not able to learn because
+                            of my hand size on the standard. I learned I should relax my hand back to the neutral
+                            position after playing big chords. It just felt very comfortable and I think I can never go
+                            back to the standard. It helped me a lot with my repertoire selection.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 3 ═══════ -->
+            <div class="section" id="q3">
+                <div class="section-header">
+                    <span class="section-number">New Possibilities</span>
+                    <h2>Expanding Her Repertoire</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>What were some repertoire or pieces that you were now able to play on the DS 6.0 that you
+                            couldn't before? And what kind of pieces were you limited to before?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>There are so many pieces that I loved to play but was not able to play on the standard
+                            because it's just too stretchy, a lot of octaves. But I can basically play any of the ones
+                            that I wanted to play on the 6.0. The first couple pieces I performed were some Brahms
+                            Intermezzos and the Beethoven 32 Variations. Now I'm working on <strong>Prokofiev's First
+                                Piano Sonata</strong>, which is very stretchy with a lot of big chords. I'm just so glad
+                            I'm able to play that on the 6.0. I'm also working on two of the <strong>Liszt Three Concert
+                                Etudes</strong>.</p>
+                        <p style="margin-top: 12px;">Before, I definitely played a lot of Mozart because it felt
+                            comfortable with my hand size. I played some Chopin, but Chopin has a lot of big chords and
+                            octaves, so I just remember it was very painful. <strong>Playing octaves never ever felt
+                                comfortable to me on the standard.</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Callout ═══════ -->
+            <div class="callout">
+                <blockquote>"Everything is easier on the 6.0. I can't think of anything that's more difficult for me. I
+                    feel very comfortable playing scales, fast passages, or big chords. Everything is just more
+                    comfortable."</blockquote>
+                <cite>Claudia, on being asked if anything is harder on the DS 6.0</cite>
+            </div>
+
+            <!-- ═══════ Q&A 4 ═══════ -->
+            <div class="section" id="q4">
+                <div class="section-header">
+                    <span class="section-number">The Bigger Picture</span>
+                    <h2>Why One Size Doesn't Fit All</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>In the NBA, they list players' heights. But with pianists, we don't ever list their hand
+                            spans, and yet there are pianists with much larger or much smaller hands all playing on the
+                            same instrument. To say there's only one size that fits everyone is actually quite absurd.
+                        </p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>Yeah, it's not just about sports. Other instruments like violins or other string instruments
+                            or even brass instruments: there are so many different sizes and you can customize your own
+                            instruments. But for piano, there's one standard size and that's it.</p>
+                        <p style="margin-top: 12px;"><strong>We adjust our hands to fit the pianos, but we don't adjust
+                                the piano sizes to fit our hands.</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 5 ═══════ -->
+            <div class="section" id="q5">
+                <div class="section-header">
+                    <span class="section-number">Practical Concerns</span>
+                    <h2>Switching Between Keyboard Sizes</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>How long does it take to adjust to a different keyboard size? Let's say you play on the DS
+                            6.0 and then you play on a standard. How long does it take to switch? Or do you just not
+                            bother at this point?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>I do play still on both sizes because I do a lot of chamber and other ensembles. For those, I
+                            play on the standard. And it's super easy to adjust, actually. When I was a senior applying
+                            for grad schools, I had to fly to different schools to audition. But I'd been practicing
+                            everything on the 6.0. When I went to audition, I had to play on the standard. I would
+                            probably just give them one or two run-throughs at the hall, and that'll do. <strong>It
+                                doesn't take very long.</strong></p>
+                        <p style="margin-top: 12px;">Sometimes I'll just sit down and play the same piece cold on both
+                            keyboards. I think maybe it's just because I'm so used to both. It's very easy for me to
+                            adjust.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 6 ═══════ -->
+            <div class="section" id="q6">
+                <div class="section-header">
+                    <span class="section-number">Addressing Doubts</span>
+                    <h2>To the Skeptics</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>What do you say to the people who claim, "If I play on the alternative key size, I'm going to
+                            forget 10 or 20 years of piano technique I've developed on the standard piano the minute I
+                            touch a DS 6.0 keyboard"?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p><span class="highlight-quote">"Oh, there's no way. They just haven't tried. They're just
+                                saying that. There's no way."</span></p>
+                        <p style="margin-top: 12px;">You can still use the same technique you use on the standard, on
+                            the 6.0. The technique: you can use it on any keyboard if you have the technique. If not,
+                            the smaller size is going to <em>help</em> you with your technique because it makes your
+                            hand physically easier to do those certain things.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 7 ═══════ -->
+            <div class="section" id="q7">
+                <div class="section-header">
+                    <span class="section-number">The Science</span>
+                    <h2>The Relaxation Problem</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>So what you're basically saying is that it's actually impossible to relax one's hand on the
+                            standard piano if your hand's below a certain size?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>I've been playing the piano for however long I've known, and I never grew up learning how to
+                            relax my hand after playing big chords on the standard. I would always hold my tension, and
+                            that's also why I got so injured and it took so long for me to recover.</p>
+                        <p style="margin-top: 12px;">On the 6.0, it helps so much because your hand is more rounded and
+                            you are able to relax. On the standard, you always want to <em>hold</em> the position
+                            because if you relax, you'll have to go back to the position to play the same chords or
+                            you'll miss notes.</p>
+                        <p style="margin-top: 12px;"><strong>If your hands are not big enough to play the chords, you
+                                have to stretch to reach. You can't be relaxed and then reach; you just physically
+                                cannot.</strong> So the only way you could play those chords is to stretch. That was
+                            very unfortunate.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Q&A 8 ═══════ -->
+            <div class="section" id="q8">
+                <div class="section-header">
+                    <span class="section-number">The Broader Impact</span>
+                    <h2>Gender, Hand Size, and the Standard Piano</h2>
+                </div>
+                <div class="qa-block">
+                    <div class="question">
+                        <div class="speaker-label">Lionel</div>
+                        <p>Speaking as a female pianist: how do you think the standard piano size has affected the
+                            gender balance of pianists in terms of competitions, recitals, or overall career
+                            opportunities over the years?</p>
+                    </div>
+                    <div class="answer">
+                        <div class="speaker-label">Claudia</div>
+                        <p>I think there are definitely more male pianists going on tours, and they're more successful
+                            than female pianists. That's the truth. We have Yuja Wang; she plays like crazy, everybody
+                            knows her name. We have some exceptions where females are so powerful, have huge hands. But
+                            I call them <em>exceptions</em>.</p>
+                        <p style="margin-top: 12px;">It's just a fact. It's not even about piano. It's just a fact.
+                            <strong>Females are smaller. We have smaller hands. And Asians, specifically, have even
+                                smaller hands.</strong> So we definitely don't have any advantage competing against a
+                            European male that can reach tenths or elevenths.
+                        </p>
+                        <p style="margin-top: 12px;">If you look at competitions for other instruments, string
+                            instruments, there are just as many women as men in the final rounds or as winners. And if
+                            you look at Bach or Mozart competitions for piano, there are more female winners too.
+                            Because those composers don't use as many octaves or large chord intervals.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════ Pullquote ═══════ -->
+            <div class="callout">
+                <blockquote>"This was really a life-changing instrument for me. If the 6.0 never existed, I would have
+                    kept getting injured, or I'd have had to quit piano. It drives me crazy because you listen to that
+                    music and you're like, 'this is so good, I want to play it,' but you physically can't. It's not like
+                    you don't have the technique. It's just not fair."</blockquote>
+                <cite>Claudia</cite>
+            </div>
+
+            <!-- ═══════ Closing ═══════ -->
+            <div class="closing" id="closing">
+                <h2>Closing Thoughts</h2>
+                <p>
+                    Claudia's story is not unique, but it is rarely told. Countless pianists around the world
+                    face the same invisible barrier: a standard-sized keyboard designed around a hand span that
+                    roughly half the world's pianists simply don't have. For many, the result is pain,
+                    compromised technique, limited repertoire choices, and, in the worst cases, injury
+                    that forces them away from the instrument they love.
+                </p>
+                <p>
+                    What makes Claudia's experience so compelling is the contrast. Before the DS 6.0, she was
+                    dealing with tendonitis, a ganglion cyst, and surgery on her wrist. She was limited to Mozart
+                    and lighter repertoire, unable to play the Prokofiev, Liszt, and Brahms pieces she dreamed of
+                    performing. After finding the DS 6.0 through Dr. Leone at SMU, she didn't just recover;
+                    <strong>she transformed</strong>. She learned new techniques, expanded her repertoire dramatically,
+                    and performed both her junior and senior recitals on the instrument.
+                </p>
+                <p>
+                    Perhaps most telling is her response to the skeptics: those who worry that playing on a
+                    narrower keyboard will somehow erase years of technique. "There's no way. They just
+                    haven't tried." Claudia regularly switches between standard and DS 6.0 keyboards
+                    for chamber performances, auditions, and solo recitals. The adjustment, she says, is trivial.
+                </p>
+                <p>
+                    Her story is an invitation to students, to parents, to teachers, and to the piano world
+                    at large: reconsider the assumption that one keyboard size must serve everyone.
+                    As Claudia puts it: <strong>"We adjust our hands to fit the pianos, but we don't adjust
+                        the piano sizes to fit our hands."</strong>
+                </p>
+                <p>
+                    For pianists everywhere with smaller hands who wonder whether they can truly pursue a
+                    career at the highest level, Claudia's journey is proof that with the right instrument,
+                    the only limit is your musicality, not the size of your hands.
+                </p>
+
+                <div class="key-takeaways">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        <li>Claudia developed tendonitis and required wrist surgery from overstretching on a standard
+                            keyboard with a 7.2" hand span</li>
+                        <li>Since switching to the DS 6.0, she has had zero recurring injuries and can play Prokofiev,
+                            Liszt, and Brahms</li>
+                        <li>Switching between DS 6.0 and standard keyboards requires only "one or two run-throughs" to
+                            adjust</li>
+                        <li>The DS 6.0 teaches better technique: hands stay rounded and relaxed, reducing tension and
+                            injury risk</li>
+                        <li>Female and Asian pianists face a measurable hand-size disadvantage on standard keyboards,
+                            particularly in competitions</li>
+                        <li>Other instruments (violin, cello, brass) come in multiple sizes; piano remains the outlier
+                        </li>
+                        <li>Dr. Leone at SMU has championed alternative keyboard sizes for nearly three decades,
+                            inspiring growing adoption across universities</li>
+                    </ul>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ═══════ FLOATING TIMELINE ═══════ -->
+        <aside class="timeline-nav" id="timelineNav">
+            <h3>In This Interview</h3>
+            <ol>
+                <li><a href="#q1">Discovering the DS 6.0</a></li>
+                <li><a href="#q2">First Time Playing</a></li>
+                <li><a href="#q3">Expanding Repertoire</a></li>
+                <li><a href="#q4">One Size Doesn't Fit All</a></li>
+                <li><a href="#q5">Switching Keyboards</a></li>
+                <li><a href="#q6">To the Skeptics</a></li>
+                <li><a href="#q7">The Relaxation Problem</a></li>
+                <li><a href="#q8">Gender &amp; Hand Size</a></li>
+                <li><a href="#closing">Closing Thoughts</a></li>
+            </ol>
+        </aside>
+
+    </div>
+
+    <!-- ═══════ FOOTER ═══════ -->
+    <footer class="footer">
+        <p>
+            Interview conducted by <a href="#">Lionel Yu</a>, Founder of <a href="#">DreamPlay Pianos</a><br>
+            &copy; 2026 DreamPlay Pianos. All rights reserved.
+        </p>
+    </footer>
+
+    <!-- ═══════ SCROLL SPY ═══════ -->
+    <script>
+        const sections = document.querySelectorAll('.section, .closing');
+        const navItems = document.querySelectorAll('.timeline-nav li');
+
+        // Scroll spy: detect which section is in view
+        // Uses parent window scroll if inside an iframe
+        (function () {
+            var scrollTarget = window;
+            try { if (window.parent && window.parent !== window) scrollTarget = window.parent; } catch (e) { }
+
+            function onScroll() {
+                var iframeRect = { top: 0 };
+                try {
+                    if (scrollTarget !== window && window.frameElement)
+                        iframeRect = window.frameElement.getBoundingClientRect();
+                } catch (e) { }
+                var scrollY = -iframeRect.top;
+                var triggerPoint = scrollY + (scrollTarget === window ? window.innerHeight : scrollTarget.innerHeight) * 0.3;
+                var activeId = null;
+
+                sections.forEach(function (section) {
+                    if (!section.id) return;
+                    var sectionTop = section.getBoundingClientRect().top + scrollY;
+                    if (sectionTop <= triggerPoint) activeId = section.id;
+                });
+
+                navItems.forEach(function (li) {
+                    var link = li.querySelector('a');
+                    if (link && link.getAttribute('href') === '#' + activeId) {
+                        li.classList.add('active');
+                    } else {
+                        li.classList.remove('active');
+                    }
+                });
+            }
+
+            scrollTarget.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
+    </script>
+
+</body>
+
+</html>
