@@ -142,22 +142,10 @@ Reply ONLY with the exact word "SIMPLE" or "COMPLEX".`;
         const payload = await getAllContextForAudience(audienceContext);
         const { contextBlock: dynamicContext, linksBlock: defaultLinksBlock } = await formatContextForPrompt(payload, audienceContext);
 
-        // 2. FETCH KNOWLEDGEBASE (server-side) ⚡️
-        let aiDossier = clientDossier;
-        if (!aiDossier) {
-            try {
-                const { data: kbDocs } = await supabase
-                    .from("research_knowledgebase")
-                    .select("*")
-                    .eq("is_active", true);
-                if (kbDocs && kbDocs.length > 0) {
-                    aiDossier = kbDocs.map((doc: any) => `--- SOURCE: ${doc.title} ${doc.author ? `(by ${doc.author})` : ''} ---\n${doc.content}`).join("\n\n");
-                    console.log(`[Knowledgebase] Injected ${kbDocs.length} active research doc(s) into prompt`);
-                }
-            } catch (e) {
-                console.error("[Knowledgebase] Failed to fetch:", e);
-            }
-        }
+        // 2. KNOWLEDGEBASE REMOVED — Research context is now handled via
+        // the Antigravity /generate-blog-post workflow, not the speed editor.
+        // This eliminates the massive context cost on every copilot request.
+        const aiDossier = "";
 
         // 3. BUILD DYNAMIC IMAGE INSTRUCTIONS ⚡️
         let imageContextBlock = "";
