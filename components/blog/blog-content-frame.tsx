@@ -61,7 +61,7 @@ export function BlogContentFrame({ html }: BlogContentFrameProps) {
             ref={iframeRef}
             srcDoc={html}
             style={{ width: "100%", height: `${height}px`, border: "none", display: "block" }}
-            sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
             title="Blog post content"
         />
     )

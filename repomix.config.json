@@ -1,6 +1,6 @@
 {
     "output": {
-        "filePath": "repomix-output.xml"
+        "filePath": "../dreamplay-blog-repomix.xml"
     },
     "ignore": {
         "useGitignore": true,
