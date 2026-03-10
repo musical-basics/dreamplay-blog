@@ -16,7 +16,7 @@ interface BlogTimelineProps {
 
 /**
  * Parses blog HTML to extract sections with IDs and their heading text.
- * Looks for any element with an id that contains an <h2> or <h3> inside it.
+ * Only picks up div/section/article elements — skips aside, nav, header, footer.
  */
 function parseSections(html: string): Section[] {
     if (typeof window === "undefined") return []
@@ -25,11 +25,15 @@ function parseSections(html: string): Section[] {
     const doc = parser.parseFromString(html, "text/html")
     const sections: Section[] = []
 
-    // Find all elements that have an ID and contain a heading
+    // Only look at content-bearing elements, not nav/aside/header/footer
+    const skipTags = new Set(["ASIDE", "NAV", "HEADER", "FOOTER"])
+
     const candidates = doc.querySelectorAll("[id]")
     candidates.forEach((el) => {
         const id = el.id
         if (!id) return
+        // Skip non-content elements
+        if (skipTags.has(el.tagName)) return
 
         // Look for h2 or h3 inside
         const heading = el.querySelector("h2, h3")
@@ -61,22 +65,27 @@ export function BlogTimeline({ html, iframeRef }: BlogTimelineProps) {
         if (!iframe) return
 
         try {
-            const iframeRect = iframe.getBoundingClientRect()
             const iframeDoc = iframe.contentDocument
             if (!iframeDoc) return
 
+            const iframeRect = iframe.getBoundingClientRect()
             const viewportTrigger = window.innerHeight * 0.3
 
             let currentId: string | null = null
             sections.forEach((section) => {
                 const el = iframeDoc.getElementById(section.id)
                 if (!el) return
-                // Element's position relative to iframe top
-                const elTop = el.getBoundingClientRect().top
-                // Convert to page coordinates: elTop is relative to iframe viewport,
-                // which in a full-height iframe = relative to iframe's internal top.
-                // The element's screen position = iframeRect.top + elTop
-                const screenTop = iframeRect.top + elTop
+
+                // Use offsetTop chain for reliable position (same as click handler)
+                let offsetY = 0
+                let current: HTMLElement | null = el as HTMLElement
+                while (current) {
+                    offsetY += current.offsetTop
+                    current = current.offsetParent as HTMLElement | null
+                }
+
+                // Element screen position = iframe screen top + element offset within iframe
+                const screenTop = iframeRect.top + offsetY
 
                 if (screenTop <= viewportTrigger) {
                     currentId = section.id
@@ -84,8 +93,8 @@ export function BlogTimeline({ html, iframeRef }: BlogTimelineProps) {
             })
 
             setActiveId(currentId)
-        } catch {
-            // Cross-origin or contentDocument not ready
+        } catch (err) {
+            console.error("[BlogTimeline] Scroll spy error:", err)
         }
     }, [iframeRef, sections])
 
