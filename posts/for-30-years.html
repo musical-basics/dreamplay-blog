@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>I Thought Piano Was Supposed to Hurt | DreamPlay Pianos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8f5f0;
+            color: #2d2a26;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .blog-container {
+            max-width: 780px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section img {
+            width: 100%;
+            height: 480px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(20, 18, 15, 0.92) 0%, rgba(20, 18, 15, 0.6) 50%, transparent 100%);
+            padding: 80px 56px 48px;
+        }
+
+        .hero-eyebrow {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #c5a55a;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 44px;
+            line-height: 1.2;
+            color: #ffffff;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .hero-subtitle {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.75);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .content-section {
+            padding: 48px 56px;
+        }
+
+        .content-section.narrow-top {
+            padding-top: 32px;
+        }
+
+        .content-section.no-bottom {
+            padding-bottom: 0;
+        }
+
+        .content-section.no-top {
+            padding-top: 0;
+        }
+
+        .author-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 32px 56px;
+            border-bottom: 1px solid #ebe6de;
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c5a55a;
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .author-info {
+            font-size: 14px;
+            color: #6b5e50;
+            line-height: 1.5;
+        }
+
+        .author-info strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .body-text {
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #3a3632;
+            margin-bottom: 24px;
+        }
+
+        .body-text:last-child {
+            margin-bottom: 0;
+        }
+
+        .body-text a {
+            color: #1a1a1a;
+            text-decoration: underline;
+            text-decoration-color: #c5a55a;
+            text-underline-offset: 3px;
+        }
+
+        .section-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #c5a55a;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .section-heading {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 30px;
+            line-height: 1.3;
+            color: #1a1a1a;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .sub-heading {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            line-height: 1.35;
+            color: #1a1a1a;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .pull-quote {
+            border-left: 3px solid #c5a55a;
+            padding: 28px 32px;
+            background-color: #faf7f2;
+            margin: 36px 0;
+        }
+
+        .pull-quote p {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            line-height: 1.6;
+            color: #1a1a1a;
+            font-style: italic;
+            margin: 0;
+        }
+
+        .pull-quote .quote-attribution {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-style: normal;
+            color: #9a8a78;
+            margin-top: 14px;
+            display: block;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #ebe6de;
+            margin: 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            margin: 36px 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 28px 16px;
+            background-color: #faf7f2;
+            border: 1px solid #ebe6de;
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 40px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #6b5e50;
+            letter-spacing: 0.3px;
+        }
+
+        .inline-image {
+            margin: 36px 0;
+        }
+
+        .inline-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .inline-image .image-caption {
+            background-color: #2a2a2a;
+            padding: 14px 24px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #c5a55a;
+            letter-spacing: 0.3px;
+        }
+
+        .inline-image .image-caption a {
+            color: #c5a55a;
+            text-decoration: none;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .data-table thead th {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .data-table tbody td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #ebe6de;
+            color: #3a3632;
+            line-height: 1.5;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #faf7f2;
+        }
+
+        .highlight-box {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 40px 44px;
+            margin: 36px 0;
+        }
+
+        .highlight-box .section-label {
+            color: #c5a55a;
+        }
+
+        .highlight-box h3 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 26px;
+            line-height: 1.35;
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .highlight-box p {
+            font-size: 15px;
+            line-height: 1.75;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 16px;
+        }
+
+        .highlight-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 56px;
+            background-color: #faf7f2;
+            border-top: 1px solid #ebe6de;
+            border-bottom: 1px solid #ebe6de;
+        }
+
+        .cta-section h2 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 30px;
+            line-height: 1.3;
+            color: #1a1a1a;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #6b5e50;
+            margin-bottom: 28px;
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 48px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .cta-button:hover {
+            background-color: #333;
+        }
+
+        .cta-subtext {
+            font-size: 13px;
+            color: #9a8a78;
+            margin-top: 16px;
+            font-style: italic;
+        }
+
+        .blog-footer {
+            padding: 40px 56px;
+            background-color: #f4f1ec;
+            text-align: center;
+        }
+
+        .blog-footer .footer-links {
+            font-size: 12px;
+            line-height: 2;
+            color: #9a8a78;
+            margin-bottom: 16px;
+        }
+
+        .blog-footer .footer-links a {
+            color: #9a8a78;
+            text-decoration: underline;
+        }
+
+        .blog-footer .footer-copy {
+            font-size: 11px;
+            line-height: 1.7;
+            color: #b0a494;
+        }
+
+        .testimonial-card {
+            background-color: #faf7f2;
+            border: 1px solid #ebe6de;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+        }
+
+        .testimonial-card .tc-quote {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 17px;
+            line-height: 1.65;
+            color: #1a1a1a;
+            font-style: italic;
+            margin-bottom: 14px;
+        }
+
+        .testimonial-card .tc-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #9a8a78;
+            font-style: normal;
+        }
+
+        @media (max-width: 680px) {
+            .hero-section img {
+                height: 320px;
+            }
+
+            .hero-overlay {
+                padding: 60px 28px 32px;
+            }
+
+            .hero-title {
+                font-size: 30px;
+            }
+
+            .hero-subtitle {
+                font-size: 17px;
+            }
+
+            .content-section {
+                padding: 36px 24px;
+            }
+
+            .author-bar {
+                padding: 24px;
+            }
+
+            .section-heading {
+                font-size: 25px;
+            }
+
+            .sub-heading {
+                font-size: 21px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .stat-number {
+                font-size: 34px;
+            }
+
+            .highlight-box {
+                padding: 28px 24px;
+            }
+
+            .cta-section {
+                padding: 40px 24px;
+            }
+
+            .cta-section h2 {
+                font-size: 25px;
+            }
+
+            .blog-footer {
+                padding: 32px 24px;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table thead th,
+            .data-table tbody td {
+                padding: 10px 12px;
+            }
+
+            .pull-quote {
+                padding: 20px 24px;
+            }
+
+            .pull-quote p {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <article class="blog-container">
+
+        <!-- Hero Section -->
+        <header class="hero-section">
+            <a href="{{hero_link_url}}">
+                <img src="{{hero_src}}" alt="Pianist performing at Carnegie Hall under dramatic stage lighting" />
+            </a>
+            <div class="hero-overlay">
+                <p class="hero-eyebrow">A Letter from Lionel Yu, Founder &amp; CEO</p>
+                <h1 class="hero-title">I Thought Piano Was Supposed to Hurt.</h1>
+                <p class="hero-subtitle">Then I discovered what a piano <em>should</em> feel like. Here's the research
+                    that changed everything.</p>
+            </div>
+        </header>
+
+        <!-- Author Bar -->
+        <div class="author-bar">
+            <div class="author-avatar">L</div>
+            <div class="author-info">
+                <strong>Lionel Yu</strong> · Founder &amp; CEO, DreamPlay Pianos<br />
+                Concert pianist, YouTube creator, and advocate for ergonomic keyboards
+            </div>
+        </div>
+
+        <!-- Section 1: Personal Story -->
+        <section class="content-section">
+            <p class="body-text">
+                I've been a YouTube pianist for a long time. So long, in fact, that a sizable portion of my YouTube
+                audience today was probably born after I started my channel.
+            </p>
+            <p class="body-text">
+                For the almost 30 years that I've been playing the piano, <strong>I thought it was supposed to feel like
+                    a finger stretching exercise.</strong> Every time after a rigorous practice session, I would have to
+                shake off my hands in pain. I assumed that was just part of the deal. You love music, so you accept the
+                discomfort.
+            </p>
+            <p class="body-text">
+                When I performed at world-famous concert halls such as Carnegie Hall and The Kennedy Center, I often had
+                to <strong>ignore the strain in my fingers</strong> in order to <u>produce the emotions that my music
+                    wanted to express.</u> The audience heard beauty. My hands felt agony. And I thought that was
+                normal.
+            </p>
+
+            <div class="inline-image">
+                <a href="{{body_img_1_link}}">
+                    <img src="{{body_img_1_src}}"
+                        alt="Lionel Yu performing at Carnegie Hall, side profile at the piano" />
+                </a>
+                <div class="image-caption">
+                    <a href="{{body_img_1_link}}">Performing at world-class venues meant hiding the pain behind the
+                        music.</a>
+                </div>
+            </div>
+
+            <p class="body-text">
+                I never questioned it. None of my teachers questioned it. The entire classical music world seemed to
+                accept that pain was simply the price of admission for serious pianists. But here's what nobody told me:
+                <strong>the problem was never my technique, my dedication, or my talent. The problem was the instrument
+                    itself.</strong>
+            </p>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 2: The Turning Point -->
+        <section class="content-section">
+            <p class="section-label">The Turning Point</p>
+            <h2 class="section-heading">A $10,000 Experiment That Changed My Life</h2>
+
+            <p class="body-text">
+                In 2022, I went to <a href="{{about_url}}">David Steinbuhler</a>, the engineer behind the DS Standard
+                Foundation, and commissioned a Kawai MP11SE with a DS6.0 keyboard size for $10,000. For the past three
+                years, I've been practicing on <u>what is possibly the only DS6.0 digital keyboard in North America.</u>
+            </p>
+
+            <div class="pull-quote">
+                <p>"It completely changed my view towards what a piano should feel like. For the first time in nearly
+                    three decades, I played without pain."</p>
+                <span class="quote-attribution">Lionel Yu, DreamPlay Founder</span>
+            </div>
+
+            <p class="body-text">
+                The DS6.0 keyboard features a 6.0-inch octave instead of the conventional 6.5-inch octave. That
+                half-inch difference might sound trivial. But when you multiply it across 88 keys and thousands of hours
+                of practice, it is the difference between a career defined by pain and one defined by music.
+                <strong>Every chord that once required a desperate stretch now fell naturally under my fingers.</strong>
+                Passages I had struggled with for years suddenly felt fluid, relaxed, almost easy.
+            </p>
+            <p class="body-text">
+                I started digging into the research. And what I found was staggering. The pain I had accepted as
+                "normal" for 30 years was not normal at all. It was the predictable, preventable consequence of
+                <u>playing an instrument that was never designed for my hands.</u>
+            </p>
+
+            <div class="inline-image">
+                <a href="{{body_img_2_link}}">
+                    <img src="{{body_img_2}}"
+                        alt="Close-up of a pianist's wrist showing strain from playing on standard-sized keys" />
+                </a>
+                <div class="image-caption">
+                    <a href="{{body_img_2_link}}">The physical toll of playing on keys that don't fit your hands.</a>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 3: The Hidden Crisis -->
+        <section class="content-section">
+            <p class="section-label">The Research</p>
+            <h2 class="section-heading">The Hidden Crisis Nobody Talks About</h2>
+
+            <p class="body-text">
+                Here is a fact that should shock every pianist, teacher, and parent: the modern piano keyboard was not
+                designed through careful ergonomic study. It is an arbitrary historical artifact from the 1880s,
+                standardized during an era when the concert stage was dominated almost exclusively by large-framed
+                European men.
+            </p>
+            <p class="body-text">
+                Before the 1880s, keyboard sizes varied significantly across regions and manufacturers. The instruments
+                played by Mozart, Haydn, Bach, and Scarlatti featured <strong>much narrower keys, shallower key dips,
+                    and significantly lighter action.</strong> As piano manufacturers sought to increase volume and
+                projection for larger Romantic-era concert halls, the keys became longer, heavier, and wider. By the
+                late 1880s, the keyboard was rigidly standardized at a 6.5-inch octave width.
+            </p>
+            <p class="body-text">
+                The composers who defined the most technically demanding piano repertoire, figures like Franz Liszt and
+                Sergei Rachmaninoff, possessed exceptionally large hands. Rachmaninoff stood 6 feet 6 inches tall and
+                could cleanly strike a 13th interval. <u>They wrote music that fully utilized their unique anatomical
+                    advantages</u>, embedding gargantuan intervals and dense chordal voicings into the foundational
+                canon of advanced piano literature.
+            </p>
+
+            <div class="highlight-box">
+                <p class="section-label">Historical Footnote</p>
+                <h3>The Josef Hofmann Exception</h3>
+                <p>
+                    The legendary pianist Josef Hofmann, a close friend of Rachmaninoff and the dedicatee of
+                    Rachmaninoff's notoriously difficult Third Piano Concerto, openly refused to perform the piece
+                    publicly due to the limitations of his smaller hand span. Leveraging his immense fame, Hofmann
+                    demanded that Steinway &amp; Sons build him a custom 7-foot instrument featuring a narrower keyboard
+                    with a 6.3-inch octave.
+                </p>
+                <p>
+                    Manufacturers have long possessed the capability to alter keyboard dimensions. But this practice was
+                    kept quiet in a classical music industry that is notoriously slow to embrace systemic change.
+                </p>
+            </div>
+
+            <p class="body-text">
+                Today's pianists face a deeply paradoxical situation. They are tasked with executing technically
+                demanding music that was composed on narrower historical keyboards (in the case of Classical works) or
+                by anatomical outliers (in the case of Late-Romantic works), all while using a modern keyboard that is
+                significantly wider and <strong>inherently favors an anatomical profile possessed by a distinct minority
+                    of the global population.</strong>
+            </p>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 4: The Numbers -->
+        <section class="content-section">
+            <p class="section-label">The Data</p>
+            <h2 class="section-heading">The Numbers Don't Lie</h2>
+
+            <p class="body-text">
+                Biomechanical research indicates that a minimum active hand span of 8.5 inches (thumb to fifth finger)
+                is required to navigate the conventional 6.5-inch octave keyboard comfortably, without relying on
+                dangerous, repetitive hyperabduction. When you apply that threshold to the general population, the scale
+                of the exclusion becomes impossible to ignore.
+            </p>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">87%</div>
+                    <div class="stat-label">of adult women have hand spans under the 8.5" safety threshold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24%</div>
+                    <div class="stat-label">of adult men also fall below the safe ergonomic threshold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">of children play on keyboards too large for their hands</div>
+                </div>
+            </div>
+
+            <p class="body-text">
+                Let that sink in. <strong>Nearly nine out of every ten female pianists are dedicating their careers to
+                    an instrument that is biologically too large for them.</strong> And while a 5-year-old violinist
+                plays a 1/10 or 1/8 size violin and graduates through multiple sizes as they grow, the 5-year-old piano
+                student is tasked with manipulating an instrument sized for an adult male.
+            </p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Keyboard Standard</th>
+                        <th>Octave Width</th>
+                        <th>Best Suited For</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DS6.5 (Conventional)</strong></td>
+                        <td>6.5 inches</td>
+                        <td>Large hands only (span &gt; 8.5"). Causes strain for the majority.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DS6.0 (Universal)</strong></td>
+                        <td>6.0 inches</td>
+                        <td>Preferred by most men. Highly accessible for the average female hand.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DS5.5 (7/8)</strong></td>
+                        <td>5.5 inches</td>
+                        <td>Eliminates the male hand-size advantage. Ideal for women, children, and injury recovery.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="inline-image">
+                <a href="{{body_img_5_link}}">
+                    <img src="{{body_img_5_src}}"
+                        alt="Comparison of the same hand size on 2 different keyboards (ability to reach more notes)" />
+                </a>
+                <div class="image-caption">
+                    <a href="{{body_img_5_link}}">Comparison of the same hand size on 2 different keyboards (ability to
+                        reach more notes).</a>
+                </div>
+            </div>
+
+
+
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 5: The Medical Evidence -->
+        <section class="content-section">
+            <p class="section-label">The Medical Evidence</p>
+            <h2 class="section-heading">This Isn't About Comfort. It's About Injury Prevention.</h2>
+
+            <p class="body-text">
+                When a pianist with a span smaller than 8.5 inches attempts to play octaves or large chords on a
+                standard keyboard, they are forced completely out of the "anatomically neutral" position. Reaching an
+                octave requires maximum hyperabduction of the thumb and fifth finger. The fingers splay flat, destroying
+                the supportive arch of the hand. Without that arch, the pianist bears down with inappropriate
+                compensatory muscle groups, leading directly to tendonitis, tenosynovitis, focal dystonia, and carpal
+                tunnel syndrome.
+            </p>
+            <p class="body-text">
+                The peer-reviewed research is overwhelming:
+            </p>
+            <p class="body-text">
+                <strong>Dr. Naotaka Sakai's clinical studies (1992, 2002)</strong> of 200 Japanese pianists confirmed
+                that the hyperabduction required to play octaves and chords on a modern keyboard was the central culprit
+                in reported injuries. He noted that many technically demanding pieces were composed for narrower
+                historical keyboards, creating a "paradoxical situation" where modern pianists destroy their hands
+                attempting these techniques on wider instruments.
+            </p>
+            <p class="body-text">
+                <strong>Yoshimura and Chesky at the University of North Texas (2006, 2008)</strong> found that <u>86% of
+                    piano majors and 91% of piano teachers reported experiencing active pain while playing.</u> By
+                analyzing a dataset of nearly 400 subjects, both studies established a statistically significant
+                negative correlation between hand span and pain. The smaller the hand, the higher the incidence and
+                severity of the pain.
+            </p>
+            <p class="body-text">
+                <strong>Dr. Brenda Wristen's EMG pilot study (2006)</strong> at the University of Nebraska-Lincoln used
+                surface electromyography to capture empirical data on muscle activity and joint angles. Small-handed
+                pianists transitioning to a 7/8 (DS5.5) keyboard showed <u>a drastic reduction in muscle fatigue and
+                    stress levels</u>, with all participants strongly preferring the narrower keyboard based on overall
+                comfort.
+            </p>
+            <p class="body-text">
+                And most recently, <strong>Stanford University's School of Engineering (2024)</strong> developed an
+                AI-trained model using the first large-scale 3D hand motion dataset from 15 elite pianists. Elizabeth
+                Schumann, Director of Keyboard Studies at Stanford and a co-author of the study, stated:
+            </p>
+
+            <div class="pull-quote">
+                <p>"We would never expect a world-class athlete to compete with equipment that does not fit their body.
+                    Yet we ask pianists, particularly women, to adapt to a one-size-fits-all design that was never built
+                    with them in mind."</p>
+                <span class="quote-attribution">Elizabeth Schumann, Director of Keyboard Studies, Stanford
+                    University</span>
+            </div>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 6: Real Stories -->
+        <section class="content-section">
+            <p class="section-label">Real Stories</p>
+            <h2 class="section-heading">"The Two Great Secrets" of Piano Playing</h2>
+
+            <p class="body-text">
+                Christopher Donison, a Canadian pianist, composer, and former music director of the Shaw Festival,
+                articulated the massive divide in the piano world by defining what he calls "two great secrets." The
+                first secret is how extraordinarily easy the instrument is to play for those possessing large hands. The
+                second secret is how utterly impossible it can be for those with smaller hands.
+            </p>
+
+            <div class="pull-quote">
+                <p>"All the touches and techniques in piano studies, and I stress ALL of them, were made easier by a
+                    factor of a hundred."</p>
+                <span class="quote-attribution">Christopher Donison, pianist and composer, on switching to narrow
+                    keys</span>
+            </div>
+
+            <p class="body-text">
+                Dr. Carol Leone, Chair of Keyboard Studies at Southern Methodist University (SMU) in Dallas, was the
+                first major U.S. institution leader to formally integrate alternatively sized keyboards into a piano
+                performance program, back in 2000. She has witnessed the transformation firsthand, hundreds of times:
+            </p>
+
+            <div class="pull-quote">
+                <p>"I often witness pianists place their hands for the first time on a keyboard that better suits their
+                    hand span. How often the pianist spontaneously bursts into tears. A lifetime of struggling with a
+                    seemingly insurmountable problem vanishes in the moment they realise, 'It's not me that is the
+                    problem; it is the instrument!'"</p>
+                <span class="quote-attribution">Dr. Carol Leone, Chair of Keyboard Studies, Southern Methodist
+                    University</span>
+            </div>
+
+            <div class="inline-image">
+                <a href="{{body_img_3_link}}">
+                    <img src="{{body_img_3}}"
+                        alt="DreamPlay One keyboard with illuminated LED keys in a warm setting" />
+                </a>
+                <div class="image-caption">
+                    <a href="{{body_img_3_link}}">When the instrument fits, the music finally flows without
+                        compromise.</a>
+                </div>
+            </div>
+
+            <p class="body-text">
+                The adaptation is remarkably fast. Dr. Leone's research shows that, on average, it takes a pianist
+                merely <strong>10 to 15 minutes to adjust to a DS6.0, and about 40 minutes to map their brain to a
+                    DS5.5.</strong> Once this initial neural mapping occurs, pianists can switch between sizes
+                effortlessly, much like a professional string player switching between a violin and a viola.
+            </p>
+
+            <p class="body-text">
+                Here are a few more voices from pianists who have experienced the difference:
+            </p>
+
+            <div class="testimonial-card">
+                <p class="tc-quote">"I haven't had a single injury, and I can practice as long as I want."</p>
+                <p class="tc-name">Eliana Yi, piano student at SMU, after switching from a standard keyboard that caused
+                    injury during a Chopin concerto</p>
+            </div>
+
+            <div class="testimonial-card">
+                <p class="tc-quote">"I was really frustrated when I first started this research because I was telling
+                    people how unfair it was to not have smaller keyboards available to students, and the reaction I
+                    heard most was people saying 'you don't need that, you just need to fix your technique.'"</p>
+                <p class="tc-name">Abigail Terrill, researcher at CU Boulder, whose thesis demonstrated rapid adaptation
+                    to narrow keyboards</p>
+            </div>
+
+            <div class="testimonial-card">
+                <p class="tc-quote">"In my 25 years as a professor, I have seen the number of students with injuries
+                    rise exponentially. I do believe that if we had smaller keyboards as a standard thing, that would
+                    not be an issue."</p>
+                <p class="tc-name">Jennifer Hayghe, Associate Professor of Piano, University of Colorado Boulder</p>
+            </div>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- Section 7: Why DreamPlay Exists -->
+        <section class="content-section">
+            <p class="section-label">Why DreamPlay Exists</p>
+            <h2 class="section-heading">I Built This Because I Couldn't Watch It Happen Anymore</h2>
+
+            <p class="body-text">
+                Many of my students are kids or women, and their hands are small. <strong>It really hurt me to see them
+                    get discouraged playing on a full-sized keyboard</strong>, when I myself was able to practice on a
+                DS6.0 keyboard and knew firsthand how transformative it was.
+            </p>
+
+            <div class="inline-image">
+                <a href="{{body_img_4_link}}">
+                    <img src="{{body_img_4}}" alt="DreamPlay One piano in a cozy family room next to a window" />
+                </a>
+                <div class="image-caption">
+                    <a href="{{body_img_4_link}}">Every child deserves a piano that fits their hands.</a>
+                </div>
+            </div>
+
+            <p class="body-text">
+                I watched talented students abandon pieces they loved. I watched them develop pain in their wrists and
+                forearms. I watched the joy drain from their faces as they struggled with passages that were physically
+                impossible for their hand size, not because they lacked talent or dedication, but because <u>the
+                    instrument was simply too large.</u>
+            </p>
+            <p class="body-text">
+                That's why I started DreamPlay. So that <strong>every pianist can experience what playing should
+                    actually feel like</strong>: comfortable, natural, and free from pain. And at a price that doesn't
+                require a $10,000 custom commission.
+            </p>
+            <p class="body-text">
+                The DreamPlay One is a professional-grade digital piano available in both DS5.5 and DS6.0 sizes. It is
+                designed for the 87% of women, the 24% of men, and the 100% of children who have been forced to play on
+                an instrument that was never built for them. <u>It is the instrument I wish I had when I was six years
+                    old.</u>
+            </p>
+            <p class="body-text">
+                The transition to a multi-standard keyboard world does not threaten the grand tradition of piano
+                playing. It democratizes it. By abandoning the "one-size-fits-all" fallacy and embracing ergonomic
+                equity, we can eliminate entirely preventable injuries and allow millions of pianists to finally realize
+                their true artistic potential.
+            </p>
+            <p class="body-text">
+                It is time for the focus of piano to finally shift from the physical survival of the instrument to the
+                <strong>joyful mastery of the music.</strong>
+            </p>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <h2>Experience What Piano Should Feel Like</h2>
+            <p>
+                Crowdfunding pricing is available until the end of March 2026. Starting at $1099 for the keyboard, or
+                $1199 for the premium bundle. Prices increase in April 2026.
+            </p>
+            <a href="{{crowdfunding_cta_url}}" class="cta-button">Reserve Your DreamPlay One</a>
+            <p class="cta-subtext">Join the movement for ergonomic keyboards.</p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="blog-footer">
+            <p class="footer-links">
+                <a href="{{about_url}}">Our Story</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="{{contact_url}}">Contact</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="{{shipping_url}}">Shipping</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="{{privacy_url}}">Privacy</a>
+            </p>
+            <p class="footer-copy">
+                &copy; 2025 DreamPlay Pianos. All rights reserved.
+            </p>
+        </footer>
+
+    </article>
+
+</body>
+
+</html>
