@@ -16,7 +16,7 @@ export function BlogPostLayout({ html }: BlogPostLayoutProps) {
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
     return (
-        <div className="flex gap-8 items-start">
+        <div className="flex gap-8">
             {/* Blog Content */}
             <div className="flex-1 min-w-0 rounded-none border border-white/10 bg-white shadow-2xl overflow-hidden">
                 <BlogContentFrame ref={iframeRef} html={html} />
