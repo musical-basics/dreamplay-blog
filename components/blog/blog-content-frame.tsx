@@ -56,10 +56,31 @@ export function BlogContentFrame({ html }: BlogContentFrameProps) {
         return () => iframe.removeEventListener("load", handleLoad)
     }, [html])
 
+    // Inject a script that intercepts hash link clicks so they scroll
+    // within the iframe instead of navigating the parent page.
+    // srcdoc iframes with allow-same-origin resolve # links relative
+    // to the parent URL, which reloads the whole page inside the iframe.
+    const hashNavFix = `<script>
+document.addEventListener('click', function(e) {
+    var a = e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href || href.charAt(0) !== '#') return;
+    e.preventDefault();
+    var target = document.querySelector(href);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+<\/script>`
+
+    // Insert the fix script before </body> or append it
+    const enhancedHtml = html.includes('</body>')
+        ? html.replace('</body>', hashNavFix + '</body>')
+        : html + hashNavFix
+
     return (
         <iframe
             ref={iframeRef}
-            srcDoc={html}
+            srcDoc={enhancedHtml}
             style={{ width: "100%", height: `${height}px`, border: "none", display: "block" }}
             sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
             title="Blog post content"
