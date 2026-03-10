@@ -126,18 +126,12 @@
 
         /* ───────── Floating Timeline ───────── */
         .timeline-nav {
-            position: absolute;
-            top: 0;
-            right: 0;
+            position: sticky;
+            top: 40px;
             width: 220px;
             flex-shrink: 0;
+            align-self: flex-start;
             padding: 24px 0;
-            transition: transform 0.15s ease-out;
-            will-change: transform;
-        }
-
-        .layout {
-            position: relative;
         }
 
         .timeline-nav h3 {
@@ -890,61 +884,30 @@
         </p>
     </footer>
 
-    <!-- ═══════ FLOATING TIMELINE + SCROLL SPY ═══════ -->
+    <!-- ═══════ SCROLL SPY ═══════ -->
     <script>
-        (function () {
-            var nav = document.getElementById('timelineNav');
-            var layout = document.querySelector('.layout');
-            var sections = document.querySelectorAll('.section, .closing');
-            var navItems = document.querySelectorAll('.timeline-nav li');
-            if (!nav || !layout) return;
+        const sections = document.querySelectorAll('.section, .closing');
+        const navItems = document.querySelectorAll('.timeline-nav li');
 
-            // Determine the scroll source: parent window (iframe) or own window
+        // Scroll spy: detect which section is in view
+        // Uses parent window scroll if inside an iframe
+        (function () {
             var scrollTarget = window;
             try { if (window.parent && window.parent !== window) scrollTarget = window.parent; } catch (e) { }
 
-            var GAP = 40; // px from top of viewport
-
             function onScroll() {
-                // Get iframe's offset in the parent page
                 var iframeRect = { top: 0 };
                 try {
-                    if (scrollTarget !== window && window.frameElement) {
+                    if (scrollTarget !== window && window.frameElement)
                         iframeRect = window.frameElement.getBoundingClientRect();
-                    }
                 } catch (e) { }
-
-                // How far from the parent viewport top is the iframe's top
-                var iframeTop = iframeRect.top;
-                // The viewport-relative scroll offset within our document
-                var scrollY = -iframeTop;
-
-                // Layout bounds (the flex container)
-                var layoutRect = layout.getBoundingClientRect();
-                var layoutTop = layoutRect.top + scrollY; // absolute top of layout in doc
-                var layoutBottom = layoutTop + layoutRect.height;
-
-                // Desired top position for the nav
-                var desiredTop = scrollY + GAP;
-
-                // Clamp within layout bounds
-                var navHeight = nav.offsetHeight;
-                var minTop = 0; // relative to layout
-                var maxTop = layoutRect.height - navHeight;
-
-                var relativeTop = desiredTop - layoutTop;
-                relativeTop = Math.max(minTop, Math.min(relativeTop, maxTop));
-
-                nav.style.transform = 'translateY(' + relativeTop + 'px)';
-
-                // ── Scroll Spy ──
-                // Use 30% from top of viewport as the trigger point
-                var triggerPoint = -iframeTop + (scrollTarget === window ? window.innerHeight : scrollTarget.innerHeight) * 0.3;
+                var scrollY = -iframeRect.top;
+                var triggerPoint = scrollY + (scrollTarget === window ? window.innerHeight : scrollTarget.innerHeight) * 0.3;
                 var activeId = null;
+
                 sections.forEach(function (section) {
                     if (!section.id) return;
-                    var rect = section.getBoundingClientRect();
-                    var sectionTop = rect.top + scrollY;
+                    var sectionTop = section.getBoundingClientRect().top + scrollY;
                     if (sectionTop <= triggerPoint) activeId = section.id;
                 });
 
@@ -959,8 +922,7 @@
             }
 
             scrollTarget.addEventListener('scroll', onScroll, { passive: true });
-            window.addEventListener('resize', onScroll, { passive: true });
-            onScroll(); // initial positioning
+            onScroll();
         })();
     </script>
 
