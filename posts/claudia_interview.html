@@ -126,12 +126,18 @@
 
         /* ───────── Floating Timeline ───────── */
         .timeline-nav {
-            position: sticky;
-            top: 40px;
+            position: absolute;
+            top: 0;
+            right: 0;
             width: 220px;
             flex-shrink: 0;
-            align-self: flex-start;
             padding: 24px 0;
+            transition: transform 0.15s ease-out;
+            will-change: transform;
+        }
+
+        .layout {
+            position: relative;
         }
 
         .timeline-nav h3 {
@@ -884,33 +890,78 @@
         </p>
     </footer>
 
-    <!-- ═══════ SCROLL SPY ═══════ -->
+    <!-- ═══════ FLOATING TIMELINE + SCROLL SPY ═══════ -->
     <script>
-        const sections = document.querySelectorAll('.section, .closing');
-        const navItems = document.querySelectorAll('.timeline-nav li');
+        (function () {
+            var nav = document.getElementById('timelineNav');
+            var layout = document.querySelector('.layout');
+            var sections = document.querySelectorAll('.section, .closing');
+            var navItems = document.querySelectorAll('.timeline-nav li');
+            if (!nav || !layout) return;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    navItems.forEach((li) => {
-                        const link = li.querySelector('a');
-                        if (link && link.getAttribute('href') === '#' + id) {
-                            li.classList.add('active');
-                        } else {
-                            li.classList.remove('active');
-                        }
-                    });
-                }
-            });
-        }, {
-            rootMargin: '-20% 0px -70% 0px',
-            threshold: 0
-        });
+            // Determine the scroll source: parent window (iframe) or own window
+            var scrollTarget = window;
+            try { if (window.parent && window.parent !== window) scrollTarget = window.parent; } catch (e) { }
 
-        sections.forEach((section) => {
-            if (section.id) observer.observe(section);
-        });
+            var GAP = 40; // px from top of viewport
+
+            function onScroll() {
+                // Get iframe's offset in the parent page
+                var iframeRect = { top: 0 };
+                try {
+                    if (scrollTarget !== window && window.frameElement) {
+                        iframeRect = window.frameElement.getBoundingClientRect();
+                    }
+                } catch (e) { }
+
+                // How far from the parent viewport top is the iframe's top
+                var iframeTop = iframeRect.top;
+                // The viewport-relative scroll offset within our document
+                var scrollY = -iframeTop;
+
+                // Layout bounds (the flex container)
+                var layoutRect = layout.getBoundingClientRect();
+                var layoutTop = layoutRect.top + scrollY; // absolute top of layout in doc
+                var layoutBottom = layoutTop + layoutRect.height;
+
+                // Desired top position for the nav
+                var desiredTop = scrollY + GAP;
+
+                // Clamp within layout bounds
+                var navHeight = nav.offsetHeight;
+                var minTop = 0; // relative to layout
+                var maxTop = layoutRect.height - navHeight;
+
+                var relativeTop = desiredTop - layoutTop;
+                relativeTop = Math.max(minTop, Math.min(relativeTop, maxTop));
+
+                nav.style.transform = 'translateY(' + relativeTop + 'px)';
+
+                // ── Scroll Spy ──
+                // Use 30% from top of viewport as the trigger point
+                var triggerPoint = -iframeTop + (scrollTarget === window ? window.innerHeight : scrollTarget.innerHeight) * 0.3;
+                var activeId = null;
+                sections.forEach(function (section) {
+                    if (!section.id) return;
+                    var rect = section.getBoundingClientRect();
+                    var sectionTop = rect.top + scrollY;
+                    if (sectionTop <= triggerPoint) activeId = section.id;
+                });
+
+                navItems.forEach(function (li) {
+                    var link = li.querySelector('a');
+                    if (link && link.getAttribute('href') === '#' + activeId) {
+                        li.classList.add('active');
+                    } else {
+                        li.classList.remove('active');
+                    }
+                });
+            }
+
+            scrollTarget.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onScroll, { passive: true });
+            onScroll(); // initial positioning
+        })();
     </script>
 
 </body>
