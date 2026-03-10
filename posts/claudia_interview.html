@@ -124,87 +124,7 @@
             padding-bottom: 100px;
         }
 
-        /* ───────── Floating Timeline ───────── */
-        .timeline-nav {
-            position: sticky;
-            top: 40px;
-            width: 220px;
-            flex-shrink: 0;
-            align-self: flex-start;
-            padding: 24px 0;
-        }
 
-        .timeline-nav h3 {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.6rem;
-            font-weight: 600;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            margin-bottom: 20px;
-            padding-left: 20px;
-        }
-
-        .timeline-nav ol {
-            list-style: none;
-            position: relative;
-        }
-
-        .timeline-nav ol::before {
-            content: '';
-            position: absolute;
-            left: 5px;
-            top: 4px;
-            bottom: 4px;
-            width: 1px;
-            background: var(--border);
-        }
-
-        .timeline-nav li {
-            position: relative;
-            padding-left: 24px;
-            margin-bottom: 4px;
-        }
-
-        .timeline-nav li::before {
-            content: '';
-            position: absolute;
-            left: 1px;
-            top: 11px;
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--border);
-            border: 2px solid var(--bg);
-            transition: all 0.3s;
-        }
-
-        .timeline-nav a {
-            display: block;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.74rem;
-            line-height: 1.5;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .timeline-nav a:hover {
-            color: var(--text);
-            background: var(--surface);
-        }
-
-        .timeline-nav li.active::before {
-            background: var(--gold);
-            box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.15);
-        }
-
-        .timeline-nav li.active a {
-            color: var(--gold-dark);
-            font-weight: 600;
-        }
 
         /* ───────── Sections ───────── */
         .section {
@@ -469,9 +389,7 @@
 
         /* ───────── Responsive ───────── */
         @media (max-width: 900px) {
-            .timeline-nav {
-                display: none;
-            }
+
 
             .layout {
                 padding: 0 16px;
@@ -858,21 +776,7 @@
 
         </main>
 
-        <!-- ═══════ FLOATING TIMELINE ═══════ -->
-        <aside class="timeline-nav" id="timelineNav">
-            <h3>In This Interview</h3>
-            <ol>
-                <li><a href="#q1">Discovering the DS 6.0</a></li>
-                <li><a href="#q2">First Time Playing</a></li>
-                <li><a href="#q3">Expanding Repertoire</a></li>
-                <li><a href="#q4">One Size Doesn't Fit All</a></li>
-                <li><a href="#q5">Switching Keyboards</a></li>
-                <li><a href="#q6">To the Skeptics</a></li>
-                <li><a href="#q7">The Relaxation Problem</a></li>
-                <li><a href="#q8">Gender &amp; Hand Size</a></li>
-                <li><a href="#closing">Closing Thoughts</a></li>
-            </ol>
-        </aside>
+
 
     </div>
 
@@ -884,47 +788,8 @@
         </p>
     </footer>
 
-    <!-- ═══════ SCROLL SPY ═══════ -->
-    <script>
-        const sections = document.querySelectorAll('.section, .closing');
-        const navItems = document.querySelectorAll('.timeline-nav li');
 
-        // Scroll spy: detect which section is in view
-        // Uses parent window scroll if inside an iframe
-        (function () {
-            var scrollTarget = window;
-            try { if (window.parent && window.parent !== window) scrollTarget = window.parent; } catch (e) { }
 
-            function onScroll() {
-                var iframeRect = { top: 0 };
-                try {
-                    if (scrollTarget !== window && window.frameElement)
-                        iframeRect = window.frameElement.getBoundingClientRect();
-                } catch (e) { }
-                var scrollY = -iframeRect.top;
-                var triggerPoint = scrollY + (scrollTarget === window ? window.innerHeight : scrollTarget.innerHeight) * 0.3;
-                var activeId = null;
-
-                sections.forEach(function (section) {
-                    if (!section.id) return;
-                    var sectionTop = section.getBoundingClientRect().top + scrollY;
-                    if (sectionTop <= triggerPoint) activeId = section.id;
-                });
-
-                navItems.forEach(function (li) {
-                    var link = li.querySelector('a');
-                    if (link && link.getAttribute('href') === '#' + activeId) {
-                        li.classList.add('active');
-                    } else {
-                        li.classList.remove('active');
-                    }
-                });
-            }
-
-            scrollTarget.addEventListener('scroll', onScroll, { passive: true });
-            onScroll();
-        })();
-    </script>
 
 </body>
 

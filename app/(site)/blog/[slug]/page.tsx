@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Music } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { renderTemplate } from "@/lib/render-template";
-import { BlogContentFrame } from "@/components/blog/blog-content-frame";
+import { BlogPostLayout } from "@/components/blog/blog-post-layout";
 import { BlogHeader } from "@/components/blog/blog-header";
 
 export const dynamic = "force-dynamic";
@@ -50,11 +50,9 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </Link>
             </div>
 
-            {/* Blog Content (sandboxed in iframe to prevent style leakage) */}
+            {/* Blog Content + Timeline */}
             <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12">
-                <div className="rounded-none border border-white/10 bg-white shadow-2xl overflow-hidden">
-                    <BlogContentFrame html={renderedContent} />
-                </div>
+                <BlogPostLayout html={renderedContent} />
             </main>
 
             {/* Footer */}
